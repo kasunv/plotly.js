@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "type": "treemap",
+      "labels": ["Eve", "Cain", "Seth", "Enos", "Noam", "Abel", "Awan", "Enoch", "Azura"],
+      "parents": ["", "Eve", "Eve", "Seth", "Seth", "Eve", "Eve", "Awan", "Eve" ],
+      "level": "Awan",
+      "domain": {"x": [0, 0.5]}
+    },
+    {
+      "type": "treemap",
+      "labels": ["Cain", "Seth", "Enos", "Noam", "Abel", "Awan", "Enoch", "Azura"],
+      "parents": ["Eve", "Eve", "Seth", "Seth", "Eve", "Eve", "Awan", "Eve" ],
+      "maxdepth": 2,
+      "domain": {"x": [0.5, 1]}
+    }
+  ],
+  "layout": {
+      "treemapcolorway": ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69"]
+  }
+}
