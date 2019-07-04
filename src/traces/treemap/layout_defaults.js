@@ -15,6 +15,6 @@ module.exports = function supplyLayoutDefaults(layoutIn, layoutOut) {
     function coerce(attr, dflt) {
         return Lib.coerce(layoutIn, layoutOut, layoutAttributes, attr, dflt);
     }
-    coerce('sunburstcolorway', layoutOut.colorway);
-    coerce('extendsunburstcolors');
+    coerce('treemapcolorway', layoutOut.colorway);
+    coerce('extendtreemapcolors');
 };

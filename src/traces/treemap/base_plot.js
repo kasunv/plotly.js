@@ -11,7 +11,7 @@
 var Registry = require('../../registry');
 var getModuleCalcData = require('../../plots/get_data').getModuleCalcData;
 
-var name = exports.name = 'sunburst';
+var name = exports.name = 'treemap';
 
 exports.plot = function(gd, traces, transitionOpts, makeOnCompleteCallback) {
     var _module = Registry.getModule(name);
@@ -24,6 +24,6 @@ exports.clean = function(newFullData, newFullLayout, oldFullData, oldFullLayout)
     var has = (newFullLayout._has && newFullLayout._has(name));
 
     if(had && !has) {
-        oldFullLayout._sunburstlayer.selectAll('g.trace').remove();
+        oldFullLayout._treemaplayer.selectAll('g.trace').remove();
     }
 };

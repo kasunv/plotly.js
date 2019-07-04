@@ -10,7 +10,7 @@
 
 module.exports = {
     moduleType: 'trace',
-    name: 'sunburst',
+    name: 'treemap',
     basePlotModule: require('./base_plot'),
     categories: [],
     animatable: true,
@@ -29,7 +29,7 @@ module.exports = {
     meta: {
         description: [
             'Visualize hierarchal data spanning outward radially from root to leaves.',
-            'The sunburst sectors are determined by the entries in *labels* or *ids*',
+            'The treemap sectors are determined by the entries in *labels* or *ids*',
             'and in *parents*.'
         ].join(' ')
     }

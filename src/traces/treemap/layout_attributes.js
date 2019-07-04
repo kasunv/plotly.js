@@ -9,24 +9,24 @@
 'use strict';
 
 module.exports = {
-    sunburstcolorway: {
+    treemapcolorway: {
         valType: 'colorlist',
         role: 'style',
         editType: 'calc',
         description: [
-            'Sets the default sunburst slice colors. Defaults to the main',
+            'Sets the default treemap slice colors. Defaults to the main',
             '`colorway` used for trace colors. If you specify a new',
             'list here it can still be extended with lighter and darker',
-            'colors, see `extendsunburstcolors`.'
+            'colors, see `extendtreemapcolors`.'
         ].join(' ')
     },
-    extendsunburstcolors: {
+    extendtreemapcolors: {
         valType: 'boolean',
         dflt: true,
         role: 'style',
         editType: 'calc',
         description: [
-            'If `true`, the sunburst slice colors (whether given by `sunburstcolorway` or',
+            'If `true`, the treemap slice colors (whether given by `treemapcolorway` or',
             'inherited from `colorway`) will be extended to three times its',
             'original length by first repeating every color 20% lighter then',
             'each color 20% darker. This is intended to reduce the likelihood',
