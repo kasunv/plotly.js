@@ -177,8 +177,8 @@ function plotOne(gd, cd, element, transitionOpts) {
         );
     };
     // slice text translate x/y
-    var transTextX = function(d) { return cx + d.midpos[0] * d.transform.rCenter + (d.transform.x || 0); };
-    var transTextY = function(d) { return cy + d.midpos[1] * d.transform.rCenter + (d.transform.y || 0); };
+    var transTextX = function(d) { return d.midpos[0] + (d.transform.y || 0); };
+    var transTextY = function(d) { return d.midpos[1] + (d.transform.y || 0); };
 
     slices = slices.data(sliceData, function(pt) { return getPtId(pt); });
 
@@ -283,7 +283,6 @@ function plotOne(gd, cd, element, transitionOpts) {
         var strTransform = function(d, textBB) {
             return 'translate(' + d.translateX + ',' + d.translateY + ')' +
                 (d.transform.scale < 1 ? ('scale(' + d.transform.scale + ')') : '') +
-                (d.transform.rotate ? ('rotate(' + d.transform.rotate + ')') : '') +
                 'translate(' +
                     (-(textBB.left + textBB.right) / 2) + ',' +
                     (-(textBB.top + textBB.bottom) / 2) +
@@ -391,8 +390,6 @@ function plotOne(gd, cd, element, transitionOpts) {
                 y1: pt.y1,
                 transform: {
                     scale: 0,
-                    rotate: transform.rotate,
-                    rCenter: transform.rCenter,
                     x: transform.x,
                     y: transform.y
                 }
@@ -427,27 +424,16 @@ function plotOne(gd, cd, element, transitionOpts) {
         var x0Fn = d3.interpolate(prev.x0, pt.x0);
         var x1Fn = d3.interpolate(prev.x1, pt.x1);
         var scaleFn = d3.interpolate(prev.transform.scale, transform.scale);
-        var rotateFn = d3.interpolate(prev.transform.rotate, transform.rotate);
-
-        // smooth out start/end from entry, to try to keep text inside sector
-        // while keeping transition smooth
-        var pow = transform.rCenter === 0 ? 3 :
-            prev.transform.rCenter === 0 ? 1 / 3 :
-            1;
-        var _rCenterFn = d3.interpolate(prev.transform.rCenter, transform.rCenter);
-        var rCenterFn = function(t) { return _rCenterFn(Math.pow(t, pow)); };
 
         return function(t) {
             var y0 = y0Fn(t);
             var y1 = y1Fn(t);
             var x0 = x0Fn(t);
             var x1 = x1Fn(t);
-            var rCenter = rCenterFn(t);
 
             var d = {
                 pmid: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
                 transform: {
-                    rCenter: rCenter,
                     x: transform.x,
                     y: transform.y
                 }
@@ -461,9 +447,7 @@ function plotOne(gd, cd, element, transitionOpts) {
                 translateX: transTextX(d),
                 translateY: transTextY(d),
                 transform: {
-                    scale: scaleFn(t),
-                    rotate: rotateFn(t),
-                    rCenter: rCenter
+                    scale: scaleFn(t)
                 }
             };
 
