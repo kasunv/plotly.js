@@ -10,6 +10,7 @@
 
 var plotAttrs = require('../../plots/attributes');
 var hovertemplateAttrs = require('../../components/fx/hovertemplate_attributes');
+// var texttemplateAttrs = require('../../plots/texttemplate_attributes');
 var domainAttrs = require('../../plots/domain').attributes;
 var pieAtts = require('../pie/attributes');
 
@@ -129,6 +130,11 @@ module.exports = {
         editType: 'plot',
         flags: ['label', 'text', 'value']
     }),
+    /*
+    texttemplate: texttemplateAttrs({editType: 'plot'}, {
+        keys: ['label', 'text', 'value', 'color']
+    }),
+    */
     textfont: pieAtts.textfont,
 
     hovertext: pieAtts.hovertext,
