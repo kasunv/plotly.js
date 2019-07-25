@@ -99,6 +99,8 @@ function plotOne(gd, cd, element, transitionOpts) {
     var domain = trace.domain;
     var vpw = gs.w * (domain.x[1] - domain.x[0]);
     var vph = gs.h * (domain.y[1] - domain.y[0]);
+    var aspectratio = vph / vpw;
+
     var rMax = 0.5 * Math.min(vpw, vph);
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
@@ -153,7 +155,25 @@ function plotOne(gd, cd, element, transitionOpts) {
     // (radial px value, partition angle ('x'))  to px [x,y]
     var rx2px = function(r, x) { return [r * Math.cos(x), -r * Math.sin(x)]; };
     // slice path generation fn
-    var pathSlice = function(d) { return Lib.pathAnnulus(d.rpy0, d.rpy1, d.x0, d.x1, cx, cy); };
+
+    var scaleY = vph / maxY;
+    var scaleX = scaleY / aspectratio;
+
+    function makePath(x0, y0, x1, y1) {
+        var _x0 = scaleX * x0 + cx - vpw / 2;
+        var _x1 = scaleX * x1 + cx - vpw / 2;
+        var _y0 = scaleY * y0 + cy - vph / 2;
+        var _y1 = scaleY * y1 + cy - vph / 2;
+
+        return (
+           'M' + _x0 + ',' + _y0 +
+           'L' + _x1 + ',' + _y0 +
+           'L' + _x1 + ',' + _y1 +
+           'L' + _x0 + ',' + _y1 + 'Z'
+        );
+    }
+
+    var pathSlice = function(d) { return makePath(d.x0, d.y0, d.x1, d.y1); };
     // slice text translate x/y
     var transTextX = function(d) { return cx + d.pxmid[0] * d.transform.rCenter + (d.transform.x || 0); };
     var transTextY = function(d) { return cy + d.pxmid[1] * d.transform.rCenter + (d.transform.y || 0); };
@@ -466,11 +486,11 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 }
 
-// x[0-1] keys are angles [radians]
+// x[0-1] keys are hierarchy heights [integers]
 // y[0-1] keys are hierarchy heights [integers]
 function partition(entry) {
     return d3Hierarchy.treemap()
-        .size([entry.height + 1, entry.height + 1])(entry); // TODO: handle different aspect ratios
+        .size([entry.height + 1, entry.height + 1])(entry);
 }
 
 function findEntryWithLevel(hierarchy, level) {
