@@ -118,8 +118,8 @@ function plotOne(gd, cd, element, transitionOpts) {
         // Important: do this before binding new sliceData!
         slices.each(function(pt) {
             prevLookup[getPtId(pt)] = {
-                rpy0: pt.rpy0,
-                rpy1: pt.rpy1,
+                y0: pt.y0,
+                y1: pt.y1,
                 x0: pt.x0,
                 x1: pt.x1,
                 transform: pt.transform
@@ -151,19 +151,23 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     // partition span ('y') to sector radial px value
     var maxY = Math.min(maxHeight, maxDepth);
-    var y2rpy = function(y) { return (y - yOffset) / maxY * rMax; };
-    // (radial px value, partition angle ('x'))  to px [x,y]
-    var rx2px = function(r, x) { return [r * Math.cos(x), -r * Math.sin(x)]; };
-    // slice path generation fn
-
+    var toY = function(y) { return (y - yOffset) / maxY * rMax; };
     var scaleY = vph / maxY;
     var scaleX = scaleY / aspectratio;
+    var getX = function(x) { return scaleX * x + cx - vpw / 2; };
+    var getY = function(y) { return scaleY * y + cy - vph / 2; };
 
-    function makePath(x0, y0, x1, y1) {
-        var _x0 = scaleX * x0 + cx - vpw / 2;
-        var _x1 = scaleX * x1 + cx - vpw / 2;
-        var _y0 = scaleY * y0 + cy - vph / 2;
-        var _y1 = scaleY * y1 + cy - vph / 2;
+    var toPoint = function(x, y) {
+        // return [x, y];
+        return [getX(x), getY(y)];
+    };
+
+    // slice path generation fn
+    var pathSlice = function(d) {
+        var _x0 = getX(d.x0);
+        var _x1 = getX(d.x1);
+        var _y0 = getY(d.y0);
+        var _y1 = getY(d.y1);
 
         return (
            'M' + _x0 + ',' + _y0 +
@@ -171,12 +175,10 @@ function plotOne(gd, cd, element, transitionOpts) {
            'L' + _x1 + ',' + _y1 +
            'L' + _x0 + ',' + _y1 + 'Z'
         );
-    }
-
-    var pathSlice = function(d) { return makePath(d.x0, d.y0, d.x1, d.y1); };
+    };
     // slice text translate x/y
-    var transTextX = function(d) { return cx + d.pxmid[0] * d.transform.rCenter + (d.transform.x || 0); };
-    var transTextY = function(d) { return cy + d.pxmid[1] * d.transform.rCenter + (d.transform.y || 0); };
+    var transTextX = function(d) { return cx + d.midpos[0] * d.transform.rCenter + (d.transform.x || 0); };
+    var transTextY = function(d) { return cy + d.midpos[1] * d.transform.rCenter + (d.transform.y || 0); };
 
     slices = slices.data(sliceData, function(pt) { return getPtId(pt); });
 
@@ -232,10 +234,11 @@ function plotOne(gd, cd, element, transitionOpts) {
             s.style('pointer-events', 'all');
         });
 
-        pt.rpy0 = y2rpy(pt.y0);
-        pt.rpy1 = y2rpy(pt.y1);
+        pt.rpy0 = toY(pt.y0);
+        pt.rpy1 = toY(pt.y1);
         pt.xmid = (pt.x0 + pt.x1) / 2;
-        pt.pxmid = rx2px(pt.rpy1, pt.xmid);
+        pt.ymid = (pt.y0 + pt.y1) / 2;
+        pt.midpos = toPoint(pt.xmid, pt.ymid);
         pt.midangle = -(pt.xmid - Math.PI / 2);
         pt.halfangle = 0.5 * Math.min(Lib.angleDelta(pt.x0, pt.x1) || Math.PI, Math.PI);
         pt.ring = 1 - (pt.rpy0 / pt.rpy1);
@@ -308,7 +311,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             // if pt to remove:
             // - if 'below' where the root-node used to be: shrink it radially inward
             // - otherwise, collapse it clockwise or counterclockwise which ever is shortest to theta=0
-            next = pt.rpy1 < entryPrev.rpy1 ? {rpy0: 0, rpy1: 0} : {x0: a, x1: a};
+            next = pt.y1 < entryPrev.y1 ? {y0: 0, y1: 0} : {x0: a, x1: a};
         } else {
             // this happens when maxdepth is set, when leaves must
             // be removed and the rootPt is new (i.e. does not have a 'prev' object)
@@ -329,7 +332,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             var n = parentChildren.length;
             var interp = d3.interpolate(parent.x0, parent.x1);
             next = {
-                rpy0: rMax, rpy1: rMax,
+                y0: rMax, y1: rMax,
                 x0: interp(ci / n), x1: interp((ci + 1) / n)
             };
         }
@@ -340,7 +343,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[getPtId(pt)];
         var prev;
-        var next = {x0: pt.x0, x1: pt.x1, rpy0: pt.rpy0, rpy1: pt.rpy1};
+        var next = {x0: pt.x0, x1: pt.x1, y0: pt.y0, y1: pt.y1};
 
         if(prev0) {
             // if pt already on graph, this is easy
@@ -360,12 +363,12 @@ function plotOne(gd, cd, element, transitionOpts) {
                         // if new leaf (when maxdepth is set),
                         // grow it radially and angularly from
                         // its parent node
-                        prev = {rpy0: rMax, rpy1: rMax};
+                        prev = {y0: rMax, r1: rMax};
                         Lib.extendFlat(prev, interpX0X1FromParent(pt));
                     }
                 } else {
                     // if new root-node, grow it radially
-                    prev = {rpy0: 0, rpy1: 0};
+                    prev = {y0: 0, y1: 0};
                 }
             } else {
                 // start sector of new traces from theta=0
@@ -385,7 +388,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             prev = prev0;
         } else {
             prev = {
-                rpy1: pt.rpy1,
+                y1: pt.y1,
                 transform: {
                     scale: 0,
                     rotate: transform.rotate,
@@ -419,7 +422,8 @@ function plotOne(gd, cd, element, transitionOpts) {
             }
         }
 
-        var rpy1Fn = d3.interpolate(prev.rpy1, pt.rpy1);
+        var y0Fn = d3.interpolate(prev.y0, pt.y0);
+        var y1Fn = d3.interpolate(prev.y1, pt.y1);
         var x0Fn = d3.interpolate(prev.x0, pt.x0);
         var x1Fn = d3.interpolate(prev.x1, pt.x1);
         var scaleFn = d3.interpolate(prev.transform.scale, transform.scale);
@@ -434,13 +438,14 @@ function plotOne(gd, cd, element, transitionOpts) {
         var rCenterFn = function(t) { return _rCenterFn(Math.pow(t, pow)); };
 
         return function(t) {
-            var rpy1 = rpy1Fn(t);
+            var y0 = y0Fn(t);
+            var y1 = y1Fn(t);
             var x0 = x0Fn(t);
             var x1 = x1Fn(t);
             var rCenter = rCenterFn(t);
 
             var d = {
-                pxmid: rx2px(rpy1, (x0 + x1) / 2),
+                pmid: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
                 transform: {
                     rCenter: rCenter,
                     x: transform.x,
@@ -449,7 +454,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
 
             var out = {
-                rpy1: rpy1Fn(t),
+                y0: y0Fn(t),
+                y1: y1Fn(t),
+                x0: x0Fn(t),
+                x1: x1Fn(t),
                 translateX: transTextX(d),
                 translateY: transTextY(d),
                 transform: {
@@ -575,8 +583,8 @@ function attachFxHandlers(sliceTop, gd, cd) {
 
         if(hovertemplate || (hoverinfo && hoverinfo !== 'none' && hoverinfo !== 'skip')) {
             var rInscribed = pt.rInscribed;
-            var hoverCenterX = cd0.cx + pt.pxmid[0] * (1 - rInscribed);
-            var hoverCenterY = cd0.cy + pt.pxmid[1] * (1 - rInscribed);
+            var hoverCenterX = cd0.cx + pt.midpos[0] * (1 - rInscribed);
+            var hoverCenterY = cd0.cy + pt.midpos[1] * (1 - rInscribed);
             var hoverPt = {};
             var parts = [];
             var thisText = [];
@@ -605,10 +613,9 @@ function attachFxHandlers(sliceTop, gd, cd) {
 
             Fx.loneHover({
                 trace: traceNow,
-                x0: hoverCenterX - rInscribed * pt.rpy1,
-                x1: hoverCenterX + rInscribed * pt.rpy1,
+                x: hoverCenterX,
                 y: hoverCenterY,
-                idealAlign: pt.pxmid[0] < 0 ? 'left' : 'right',
+                idealAlign: pt.midpos[0] < 0 ? 'left' : 'right',
                 text: thisText.join('<br>'),
                 name: (hovertemplate || hasFlag('name')) ? traceNow.name : undefined,
                 color: _cast('hoverlabel.bgcolor') || cdi.color,
@@ -838,13 +845,8 @@ function determineInsideTextFont(trace, pt, layoutFont) {
 }
 
 function getInscribedRadiusFraction(pt) {
-    if(pt.rpy0 === 0 && Lib.isFullCircle([pt.x0, pt.x1])) {
-        // special case of 100% with no hole
-        return 1;
-    } else {
-        return Math.max(0, Math.min(
-            1 / (1 + 1 / Math.sin(pt.halfangle)),
-            pt.ring / 2
-        ));
-    }
+    return Math.max(0, Math.min(
+        1 / (1 + 1 / Math.sin(pt.halfangle)),
+        pt.ring / 2
+    ));
 }
