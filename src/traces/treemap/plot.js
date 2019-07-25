@@ -469,8 +469,8 @@ function plotOne(gd, cd, element, transitionOpts) {
 // x[0-1] keys are angles [radians]
 // y[0-1] keys are hierarchy heights [integers]
 function partition(entry) {
-    return d3Hierarchy.partition()
-        .size([2 * Math.PI, entry.height + 1])(entry);
+    return d3Hierarchy.treemap()
+        .size([entry.height + 1, entry.height + 1])(entry); // TODO: handle different aspect ratios
 }
 
 function findEntryWithLevel(hierarchy, level) {
