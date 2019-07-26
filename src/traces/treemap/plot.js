@@ -21,7 +21,7 @@ var svgTextUtils = require('../../lib/svg_text_utils');
 var setCursor = require('../../lib/setcursor');
 var appendArrayPointValue = require('../../components/fx/helpers').appendArrayPointValue;
 
-var transformInsideText = require('../pie/plot').transformInsideText;
+var toMoveInsideBar = require('../bar/plot').toMoveInsideBar;
 var formatPieValue = require('../pie/helpers').formatPieValue;
 var styleOne = require('./style').styleOne;
 
@@ -135,30 +135,25 @@ function plotOne(gd, cd, element, transitionOpts) {
     // grab corresponding calcdata item in sliceData[i].data.data
     var sliceData = partition(entry).descendants();
     var maxHeight = entry.height + 1;
-    var yOffset = 0;
     var cutoff = maxDepth;
 
     // N.B. handle multiple-root special case
     if(cd0.hasMultipleRoots && isHierachyRoot(entry)) {
         sliceData = sliceData.slice(1);
         maxHeight -= 1;
-        yOffset = 1;
         cutoff += 1;
     }
 
     // filter out slices that won't show up on graph
     sliceData = sliceData.filter(function(pt) { return pt.y1 <= cutoff; });
 
-    // partition span ('y') to sector radial px value
     var maxY = Math.min(maxHeight, maxDepth);
-    var toY = function(y) { return (y - yOffset) / maxY * rMax; };
     var scaleY = vph / maxY;
     var scaleX = scaleY / aspectratio;
     var getX = function(x) { return scaleX * x + cx - vpw / 2; };
     var getY = function(y) { return scaleY * y + cy - vph / 2; };
 
     var toPoint = function(x, y) {
-        // return [x, y];
         return [getX(x), getY(y)];
     };
 
@@ -177,7 +172,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         );
     };
     // slice text translate x/y
-    var transTextX = function(d) { return d.midpos[0] + (d.transform.y || 0); };
+    var transTextX = function(d) { return d.midpos[0] + (d.transform.x || 0); };
     var transTextY = function(d) { return d.midpos[1] + (d.transform.y || 0); };
 
     slices = slices.data(sliceData, function(pt) { return getPtId(pt); });
@@ -234,15 +229,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             s.style('pointer-events', 'all');
         });
 
-        pt.rpy0 = toY(pt.y0);
-        pt.rpy1 = toY(pt.y1);
-        pt.xmid = (pt.x0 + pt.x1) / 2;
-        pt.ymid = (pt.y0 + pt.y1) / 2;
-        pt.midpos = toPoint(pt.xmid, pt.ymid);
-        pt.midangle = -(pt.xmid - Math.PI / 2);
-        pt.halfangle = 0.5 * Math.min(Lib.angleDelta(pt.x0, pt.x1) || Math.PI, Math.PI);
-        pt.ring = 1 - (pt.rpy0 / pt.rpy1);
-        pt.rInscribed = getInscribedRadiusFraction(pt, trace);
+        pt.midpos = toPoint(
+            (pt.x0 + pt.x1) / 2,
+            (pt.y0 + pt.y1) / 2
+        );
 
         if(hasTransition) {
             slicePath.transition().attrTween('d', function(pt2) {
@@ -276,13 +266,20 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         // position the text relative to the slice
         var textBB = Drawing.bBox(sliceText.node());
-        pt.transform = transformInsideText(textBB, pt, cd0);
+        pt.transform = toMoveInsideBar(pt.x0, pt.x1, pt.y0, pt.y1, textBB, {
+            isHorizontal: false,
+            constrained: true,
+            anchor: 'middle',
+            angle: 0
+        });
+        pt.transform.scale *= 100; // TODO: remove this hack
+
         pt.translateX = transTextX(pt);
         pt.translateY = transTextY(pt);
 
         var strTransform = function(d, textBB) {
             return 'translate(' + d.translateX + ',' + d.translateY + ')' +
-                (d.transform.scale < 1 ? ('scale(' + d.transform.scale + ')') : '') +
+                'scale(' + d.transform.scale + ')' +
                 'translate(' +
                     (-(textBB.left + textBB.right) / 2) + ',' +
                     (-(textBB.top + textBB.bottom) / 2) +
@@ -306,7 +303,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var next;
 
         if(entryPrev) {
-            var a = pt.x1 > entryPrev.x1 ? 2 * Math.PI : 0;
+            var a = myFunc(pt.x1, entryPrev.x1);
             // if pt to remove:
             // - if 'below' where the root-node used to be: shrink it radially inward
             // - otherwise, collapse it clockwise or counterclockwise which ever is shortest to theta=0
@@ -356,13 +353,13 @@ function plotOne(gd, cd, element, transitionOpts) {
                         // if new branch, twist it in clockwise or
                         // counterclockwise which ever is shorter to
                         // its final angle
-                        var a = pt.x1 > nextX1ofPrevEntry ? 2 * Math.PI : 0;
+                        var a = myFunc(pt.x1, nextX1ofPrevEntry);
                         prev = {x0: a, x1: a};
                     } else {
                         // if new leaf (when maxdepth is set),
                         // grow it radially and angularly from
                         // its parent node
-                        prev = {y0: rMax, r1: rMax};
+                        prev = {y0: rMax, y1: rMax};
                         Lib.extendFlat(prev, interpX0X1FromParent(pt));
                     }
                 } else {
@@ -403,7 +400,7 @@ function plotOne(gd, cd, element, transitionOpts) {
                         // if new branch, twist it in clockwise or
                         // counterclockwise which ever is shorter to
                         // its final angle
-                        var a = pt.x1 > nextX1ofPrevEntry ? 2 * Math.PI : 0;
+                        var a = myFunc(pt.x1, nextX1ofPrevEntry);
                         prev.x0 = prev.x1 = a;
                     } else {
                         // if leaf
@@ -432,7 +429,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             var x1 = x1Fn(t);
 
             var d = {
-                pmid: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
+                midpos: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
                 transform: {
                     x: transform.x,
                     y: transform.y
@@ -566,9 +563,8 @@ function attachFxHandlers(sliceTop, gd, cd) {
         var separators = fullLayoutNow.separators;
 
         if(hovertemplate || (hoverinfo && hoverinfo !== 'none' && hoverinfo !== 'skip')) {
-            var rInscribed = pt.rInscribed;
-            var hoverCenterX = cd0.cx + pt.midpos[0] * (1 - rInscribed);
-            var hoverCenterY = cd0.cy + pt.midpos[1] * (1 - rInscribed);
+            var hoverCenterX = pt.midpos[0];
+            var hoverCenterY = pt.midpos[1];
             var hoverPt = {};
             var parts = [];
             var thisText = [];
@@ -828,9 +824,7 @@ function determineInsideTextFont(trace, pt, layoutFont) {
     };
 }
 
-function getInscribedRadiusFraction(pt) {
-    return Math.max(0, Math.min(
-        1 / (1 + 1 / Math.sin(pt.halfangle)),
-        pt.ring / 2
-    ));
+function myFunc(/* a, b */) {
+    // return a > b ? 2 * Math.PI : 0;
+    return 0;
 }
