@@ -329,7 +329,12 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[getPtId(pt)];
-        var prev;
+        var prev = {
+            x0: 0,
+            x1: 0,
+            y0: 0,
+            y1: 0
+        };
         var next = {
             x0: pt.x0,
             x1: pt.x1,
@@ -353,13 +358,7 @@ function plotOne(gd, cd, element, transitionOpts) {
                     };
 
                     Lib.extendFlat(prev, interpFromParent(pt));
-                } else {
-                    // if new root-node, grow it radially
-                    prev = {y0: 0, y1: 0};
                 }
-            } else {
-                // start sector of new traces from theta=0
-                prev = {x0: 0, x1: 0};
             }
         }
 
@@ -367,34 +366,29 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 
     function makeUpdateTextInterpolar(pt) {
-        var prev0 = prevLookup[getPtId(pt)];
-        var prev;
         var transform = pt.transform;
+        var prev0 = prevLookup[getPtId(pt)];
+        var prev = {
+            transform: {
+                scale: 0,
+                x: transform.x,
+                y: transform.y
+            },
+            x0: 0,
+            x1: 0,
+            y0: 0,
+            y1: 1
+        };
 
         if(prev0) {
             prev = prev0;
         } else {
-            prev = {
-                transform: {
-                    scale: 0,
-                    x: transform.x,
-                    y: transform.y
-                }
-            };
-
             // for new pts:
             if(prevEntry) {
                 // if trace was visible before
                 if(pt.parent) {
                     Lib.extendFlat(prev, interpFromParent(pt));
-                } else {
-                    prev.x0 = prev.x1 = 0;
-                    prev.y0 = prev.y1 = 0;
                 }
-            } else {
-                // on new traces
-                prev.x0 = prev.x1 = 0;
-                prev.y0 = prev.y1 = 0;
             }
         }
 
@@ -437,7 +431,6 @@ function plotOne(gd, cd, element, transitionOpts) {
     function interpFromParent(pt) {
         var parent = pt.parent;
         var parentPrev = prevLookup[getPtId(parent)];
-        var out = {};
 
         if(parentPrev) {
             // if parent is visible
@@ -447,18 +440,20 @@ function plotOne(gd, cd, element, transitionOpts) {
             var interpX = d3.interpolate(parentPrev.x0, parentPrev.x1);
             var interpY = d3.interpolate(parentPrev.y0, parentPrev.y1);
 
-            out.x0 = interpX(ci / n);
-            out.x1 = interpX(ci / n);
-            out.y0 = interpY(ci / n);
-            out.y1 = interpY(ci / n);
-        } else {
-            // w/o visible parent
-            // TODO !!! HOW ???
-            out.x0 = out.x1 = 0;
-            out.y0 = out.y1 = 0;
+            return {
+                x0: interpX(ci / n),
+                x1: interpX(ci / n),
+                y0: interpY(ci / n),
+                y1: interpY(ci / n)
+            };
         }
 
-        return out;
+        return {
+            x0: 0,
+            x1: 0,
+            y0: 0,
+            y1: 0
+        };
     }
 }
 
