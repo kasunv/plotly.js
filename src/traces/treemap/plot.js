@@ -101,7 +101,6 @@ function plotOne(gd, cd, element, transitionOpts) {
     var vph = gs.h * (domain.y[1] - domain.y[0]);
     var aspectratio = vph / vpw;
 
-    var rMax = 0.5 * Math.min(vpw, vph);
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
@@ -118,10 +117,10 @@ function plotOne(gd, cd, element, transitionOpts) {
         // Important: do this before binding new sliceData!
         slices.each(function(pt) {
             prevLookup[getPtId(pt)] = {
-                y0: pt.y0,
-                y1: pt.y1,
                 x0: pt.x0,
                 x1: pt.x1,
+                y0: pt.y0,
+                y1: pt.y1,
                 transform: pt.transform
             };
 
@@ -154,7 +153,10 @@ function plotOne(gd, cd, element, transitionOpts) {
     var getY = function(y) { return scaleY * y + cy - vph / 2; };
 
     var toPoint = function(x, y) {
-        return [getX(x), getY(y)];
+        return [
+            getX(x),
+            getY(y)
+        ];
     };
 
     // slice path generation fn
@@ -200,17 +202,6 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 
     slices.order();
-
-    // next x1 (i.e. sector end angle) of previous entry
-    var nextX1ofPrevEntry = null;
-    if(hasTransition && prevEntry) {
-        var prevEntryId = getPtId(prevEntry);
-        slices.each(function(pt) {
-            if(nextX1ofPrevEntry === null && (getPtId(pt) === prevEntryId)) {
-                nextX1ofPrevEntry = pt.x1;
-            }
-        });
-    }
 
     var updateSlices = slices;
     if(hasTransition) {
@@ -303,11 +294,8 @@ function plotOne(gd, cd, element, transitionOpts) {
         var next;
 
         if(entryPrev) {
-            var a = myFunc(pt.x1, entryPrev.x1);
             // if pt to remove:
-            // - if 'below' where the root-node used to be: shrink it radially inward
-            // - otherwise, collapse it clockwise or counterclockwise which ever is shortest to theta=0
-            next = pt.y1 < entryPrev.y1 ? {y0: 0, y1: 0} : {x0: a, x1: a};
+            next = {y0: 0, y1: 0, x0: 0, x1: 0};
         } else {
             // this happens when maxdepth is set, when leaves must
             // be removed and the rootPt is new (i.e. does not have a 'prev' object)
@@ -326,10 +314,13 @@ function plotOne(gd, cd, element, transitionOpts) {
                 }
             });
             var n = parentChildren.length;
-            var interp = d3.interpolate(parent.x0, parent.x1);
+            var interpX = d3.interpolate(parent.x0, parent.x1);
+            var interpY = d3.interpolate(parent.y0, parent.y1);
             next = {
-                y0: rMax, y1: rMax,
-                x0: interp(ci / n), x1: interp((ci + 1) / n)
+                x0: interpX(ci / n),
+                x1: interpX((ci + 1) / n),
+                y0: interpY(ci / n),
+                y1: interpY((ci + 1) / n)
             };
         }
 
@@ -339,7 +330,12 @@ function plotOne(gd, cd, element, transitionOpts) {
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[getPtId(pt)];
         var prev;
-        var next = {x0: pt.x0, x1: pt.x1, y0: pt.y0, y1: pt.y1};
+        var next = {
+            x0: pt.x0,
+            x1: pt.x1,
+            y0: pt.y0,
+            y1: pt.y1
+        };
 
         if(prev0) {
             // if pt already on graph, this is easy
@@ -349,19 +345,14 @@ function plotOne(gd, cd, element, transitionOpts) {
             if(prevEntry) {
                 // if trace was visible before
                 if(pt.parent) {
-                    if(nextX1ofPrevEntry) {
-                        // if new branch, twist it in clockwise or
-                        // counterclockwise which ever is shorter to
-                        // its final angle
-                        var a = myFunc(pt.x1, nextX1ofPrevEntry);
-                        prev = {x0: a, x1: a};
-                    } else {
-                        // if new leaf (when maxdepth is set),
-                        // grow it radially and angularly from
-                        // its parent node
-                        prev = {y0: rMax, y1: rMax};
-                        Lib.extendFlat(prev, interpX0X1FromParent(pt));
-                    }
+                    prev = {
+                        x0: pt.x0,
+                        x1: pt.x1,
+                        y0: pt.y0,
+                        y1: pt.x1
+                    };
+
+                    Lib.extendFlat(prev, interpFromParent(pt));
                 } else {
                     // if new root-node, grow it radially
                     prev = {y0: 0, y1: 0};
@@ -384,7 +375,6 @@ function plotOne(gd, cd, element, transitionOpts) {
             prev = prev0;
         } else {
             prev = {
-                y1: pt.y1,
                 transform: {
                     scale: 0,
                     x: transform.x,
@@ -396,37 +386,29 @@ function plotOne(gd, cd, element, transitionOpts) {
             if(prevEntry) {
                 // if trace was visible before
                 if(pt.parent) {
-                    if(nextX1ofPrevEntry) {
-                        // if new branch, twist it in clockwise or
-                        // counterclockwise which ever is shorter to
-                        // its final angle
-                        var a = myFunc(pt.x1, nextX1ofPrevEntry);
-                        prev.x0 = prev.x1 = a;
-                    } else {
-                        // if leaf
-                        Lib.extendFlat(prev, interpX0X1FromParent(pt));
-                    }
+                    Lib.extendFlat(prev, interpFromParent(pt));
                 } else {
-                    // if new root-node
                     prev.x0 = prev.x1 = 0;
+                    prev.y0 = prev.y1 = 0;
                 }
             } else {
                 // on new traces
                 prev.x0 = prev.x1 = 0;
+                prev.y0 = prev.y1 = 0;
             }
         }
 
-        var y0Fn = d3.interpolate(prev.y0, pt.y0);
-        var y1Fn = d3.interpolate(prev.y1, pt.y1);
         var x0Fn = d3.interpolate(prev.x0, pt.x0);
         var x1Fn = d3.interpolate(prev.x1, pt.x1);
+        var y0Fn = d3.interpolate(prev.y0, pt.y0);
+        var y1Fn = d3.interpolate(prev.y1, pt.y1);
         var scaleFn = d3.interpolate(prev.transform.scale, transform.scale);
 
         return function(t) {
-            var y0 = y0Fn(t);
-            var y1 = y1Fn(t);
             var x0 = x0Fn(t);
             var x1 = x1Fn(t);
+            var y0 = y0Fn(t);
+            var y1 = y1Fn(t);
 
             var d = {
                 midpos: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
@@ -437,10 +419,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
 
             var out = {
-                y0: y0Fn(t),
-                y1: y1Fn(t),
                 x0: x0Fn(t),
                 x1: x1Fn(t),
+                y0: y0Fn(t),
+                y1: y1Fn(t),
                 translateX: transTextX(d),
                 translateY: transTextY(d),
                 transform: {
@@ -452,7 +434,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         };
     }
 
-    function interpX0X1FromParent(pt) {
+    function interpFromParent(pt) {
         var parent = pt.parent;
         var parentPrev = prevLookup[getPtId(parent)];
         var out = {};
@@ -462,13 +444,18 @@ function plotOne(gd, cd, element, transitionOpts) {
             var parentChildren = parent.children;
             var ci = parentChildren.indexOf(pt);
             var n = parentChildren.length;
-            var interp = d3.interpolate(parentPrev.x0, parentPrev.x1);
-            out.x0 = interp(ci / n);
-            out.x1 = interp(ci / n);
+            var interpX = d3.interpolate(parentPrev.x0, parentPrev.x1);
+            var interpY = d3.interpolate(parentPrev.y0, parentPrev.y1);
+
+            out.x0 = interpX(ci / n);
+            out.x1 = interpX(ci / n);
+            out.y0 = interpY(ci / n);
+            out.y1 = interpY(ci / n);
         } else {
             // w/o visible parent
             // TODO !!! HOW ???
             out.x0 = out.x1 = 0;
+            out.y0 = out.y1 = 0;
         }
 
         return out;
@@ -822,9 +809,4 @@ function determineInsideTextFont(trace, pt, layoutFont) {
         family: family,
         size: size
     };
-}
-
-function myFunc(/* a, b */) {
-    // return a > b ? 2 * Math.PI : 0;
-    return 0;
 }
