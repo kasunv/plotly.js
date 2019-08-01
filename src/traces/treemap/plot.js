@@ -350,13 +350,6 @@ function plotOne(gd, cd, element, transitionOpts) {
             if(prevEntry) {
                 // if trace was visible before
                 if(pt.parent) {
-                    prev = {
-                        x0: pt.x0,
-                        x1: pt.x1,
-                        y0: pt.y0,
-                        y1: pt.x1
-                    };
-
                     Lib.extendFlat(prev, interpFromParent(pt));
                 }
             }
@@ -366,18 +359,17 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 
     function makeUpdateTextInterpolar(pt) {
-        var transform = pt.transform;
         var prev0 = prevLookup[getPtId(pt)];
         var prev = {
             transform: {
                 scale: 0,
-                x: transform.x,
-                y: transform.y
+                x: pt.transform.x,
+                y: pt.transform.y
             },
             x0: 0,
             x1: 0,
             y0: 0,
-            y1: 1
+            y1: 0
         };
 
         if(prev0) {
@@ -396,7 +388,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var x1Fn = d3.interpolate(prev.x1, pt.x1);
         var y0Fn = d3.interpolate(prev.y0, pt.y0);
         var y1Fn = d3.interpolate(prev.y1, pt.y1);
-        var scaleFn = d3.interpolate(prev.transform.scale, transform.scale);
+        var scaleFn = d3.interpolate(prev.transform.scale, pt.transform.scale);
 
         return function(t) {
             var x0 = x0Fn(t);
@@ -407,12 +399,12 @@ function plotOne(gd, cd, element, transitionOpts) {
             var d = {
                 midpos: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
                 transform: {
-                    x: transform.x,
-                    y: transform.y
+                    x: pt.transform.x,
+                    y: pt.transform.y
                 }
             };
 
-            var out = {
+            return {
                 x0: x0Fn(t),
                 x1: x1Fn(t),
                 y0: y0Fn(t),
@@ -423,8 +415,6 @@ function plotOne(gd, cd, element, transitionOpts) {
                     scale: scaleFn(t)
                 }
             };
-
-            return out;
         };
     }
 
@@ -457,11 +447,28 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 }
 
+var TREEMAP_TYPES = [
+    'treemapBinary',
+    'treemapSquarify',
+    'treemapSliceDice',
+    'treemapSlice',
+    'treemapDice'
+];
+
+var treemapType = TREEMAP_TYPES[1];
+
 // x[0-1] keys are hierarchy heights [integers]
 // y[0-1] keys are hierarchy heights [integers]
 function partition(entry) {
-    return d3Hierarchy.treemap()
-        .size([entry.height + 1, entry.height + 1])(entry);
+    return d3Hierarchy
+        .treemap()
+        .tile(
+            d3Hierarchy[treemapType]
+        )
+        .size([
+            entry.height + 1,
+            entry.height + 1
+        ])(entry);
 }
 
 function findEntryWithLevel(hierarchy, level) {
