@@ -172,6 +172,7 @@ function plotOne(gd, cd, element, transitionOpts) {
            'L' + _x0 + ',' + _y1 + 'Z'
         );
     };
+
     // slice text translate x/y
     var transTextX = function(d) { return d.midpos[0] + (d.transform.x || 0); };
     var transTextY = function(d) { return d.midpos[1] + (d.transform.y || 0); };
@@ -584,7 +585,11 @@ function attachFxHandlers(sliceTop, gd, cd) {
 
         // 'regular' click event when treemapclick is disabled or when
         // clikcin on leaves or the hierarchy root
-        if(clickVal === false || helpers.isLeaf(pt) || helpers.isHierachyRoot(pt)) {
+        if(
+            clickVal === false ||
+            // helpers.isLeaf(pt) ||
+            helpers.isHierachyRoot(pt)
+        ) {
             if(fullLayoutNow.hovermode) {
                 gd._hoverdata = [helpers.makeEventData(pt, traceNow)];
                 Fx.click(gd, d3.event);
@@ -605,7 +610,9 @@ function attachFxHandlers(sliceTop, gd, cd) {
 
         var hierarchy = cd0.hierarchy;
         var id = helpers.getPtId(pt);
-        var nextEntry = helpers.isEntry(pt) ?
+
+        var nextEntry =
+            helpers.isEntry(pt) ?
             helpers.findEntryWithChild(hierarchy, id) :
             helpers.findEntryWithLevel(hierarchy, id);
 
