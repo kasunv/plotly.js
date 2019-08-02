@@ -129,26 +129,56 @@ module.exports = {
     textinfo: {
         valType: 'flaglist',
         role: 'info',
-        flags: ['label', 'text', 'value'],
+        flags: [
+            // 'percent parent',
+            // 'percent total',
+            'label',
+            'text',
+            'value'
+        ],
         extras: ['none'],
         editType: 'plot',
         description: [
             'Determines which trace information appear on the graph.'
         ].join(' ')
     },
+
     /*
     texttemplate: texttemplateAttrs({editType: 'plot'}, {
-        keys: ['label', 'text', 'value', 'color']
+        keys: [
+            // 'percent parent',
+            // 'percent total',
+            'label',
+            'text',
+            'value',
+            'color'
+        ]
     }),
     */
-    textfont: pieAttrs.textfont,
 
     hovertext: pieAttrs.hovertext,
     hoverinfo: extendFlat({}, plotAttrs.hoverinfo, {
-        flags: ['label', 'text', 'value', 'name']
+        flags: [
+            // 'percent parent',
+            // 'percent total',
+            'label',
+            'text',
+            'value',
+            'name'
+        ]
     }),
-    hovertemplate: hovertemplateAttrs(),
+    hovertemplate: extendFlat({}, hovertemplateAttrs(), {
+        flags: [
+            // 'percent parent',
+            // 'percent total',
+            'label',
+            'text',
+            'value',
+            'text'
+        ]
+    }),
 
+    textfont: pieAttrs.textfont,
     insidetextfont: pieAttrs.insidetextfont,
     outsidetextfont: pieAttrs.outsidetextfont,
 
