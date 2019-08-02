@@ -106,7 +106,6 @@ function plotOne(gd, cd, element, transitionOpts) {
     var domain = trace.domain;
     var vpw = gs.w * (domain.x[1] - domain.x[0]);
     var vph = gs.h * (domain.y[1] - domain.y[0]);
-    var aspectratio = vph / vpw;
 
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
@@ -139,25 +138,20 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     // N.B. slice data isn't the calcdata,
     // grab corresponding calcdata item in sliceData[i].data.data
-    var sliceData = partition(entry).descendants();
-    var maxHeight = entry.height + 1;
+    var sliceData = partition(entry, [vpw, vph]).descendants();
     var cutoff = maxDepth;
 
     // N.B. handle multiple-root special case
     if(cd0.hasMultipleRoots && isHierachyRoot(entry)) {
         sliceData = sliceData.slice(1);
-        maxHeight -= 1;
         cutoff += 1;
     }
 
     // filter out slices that won't show up on graph
     sliceData = sliceData.filter(function(pt) { return pt.y1 <= cutoff; });
 
-    var maxY = Math.min(maxHeight, maxDepth);
-    var scaleY = vph / maxY;
-    var scaleX = scaleY / aspectratio;
-    var getX = function(x) { return scaleX * x + cx - vpw / 2; };
-    var getY = function(y) { return scaleY * y + cy - vph / 2; };
+    var getX = function(x) { return x + cx - vpw / 2; };
+    var getY = function(y) { return y + cy - vph / 2; };
 
     var toPoint = function(x, y) {
         return [
@@ -270,7 +264,6 @@ function plotOne(gd, cd, element, transitionOpts) {
             angle: cd0.trace.textangle,
             anchor: 'middle'
         });
-        pt.transform.scale *= 100; // TODO: remove this hack
 
         pt.translateX = transTextX(pt);
         pt.translateY = transTextY(pt);
@@ -458,16 +451,11 @@ var treemapType = TREEMAP_TYPES[1];
 
 // x[0-1] keys are hierarchy heights [integers]
 // y[0-1] keys are hierarchy heights [integers]
-function partition(entry) {
+function partition(entry, size) {
     return d3Hierarchy
         .treemap()
-        .tile(
-            d3Hierarchy[treemapType]
-        )
-        .size([
-            entry.height + 1,
-            entry.height + 1
-        ])(entry);
+        .tile(d3Hierarchy[treemapType])
+        .size(size)(entry);
 }
 
 function findEntryWithLevel(hierarchy, level) {
