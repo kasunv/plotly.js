@@ -13,19 +13,17 @@ var d3Hierarchy = require('d3-hierarchy');
 
 var Registry = require('../../registry');
 var Fx = require('../../components/fx');
-var Color = require('../../components/color');
 var Drawing = require('../../components/drawing');
 var Lib = require('../../lib');
 var Events = require('../../lib/events');
 var svgTextUtils = require('../../lib/svg_text_utils');
-var setCursor = require('../../lib/setcursor');
-var appendArrayPointValue = require('../../components/fx/helpers').appendArrayPointValue;
 
 var toMoveInsideBar = require('../bar/plot').toMoveInsideBar;
 var formatPieValue = require('../pie/helpers').formatPieValue;
 var styleOne = require('./style').styleOne;
 
 var constants = require('./constants');
+var helpers = require('../sunburst/helpers');
 
 module.exports = function(gd, cdmodule, transitionOpts, makeOnCompleteCallback) {
     var fullLayout = gd._fullLayout;
@@ -99,7 +97,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cd0 = cd[0];
     var trace = cd0.trace;
     var hierarchy = cd0.hierarchy;
-    var entry = findEntryWithLevel(hierarchy, trace.level);
+    var entry = helpers.findEntryWithLevel(hierarchy, trace.level);
     var maxDepth = trace.maxdepth >= 0 ? trace.maxdepth : Infinity;
 
     var gs = fullLayout._size;
@@ -122,7 +120,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     if(hasTransition) {
         // Important: do this before binding new sliceData!
         slices.each(function(pt) {
-            prevLookup[getPtId(pt)] = {
+            prevLookup[helpers.getPtId(pt)] = {
                 x0: pt.x0,
                 x1: pt.x1,
                 y0: pt.y0,
@@ -130,7 +128,7 @@ function plotOne(gd, cd, element, transitionOpts) {
                 transform: pt.transform
             };
 
-            if(!prevEntry && isEntry(pt)) {
+            if(!prevEntry && helpers.isEntry(pt)) {
                 prevEntry = pt;
             }
         });
@@ -142,7 +140,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cutoff = maxDepth;
 
     // N.B. handle multiple-root special case
-    if(cd0.hasMultipleRoots && isHierachyRoot(entry)) {
+    if(cd0.hasMultipleRoots && helpers.isHierachyRoot(entry)) {
         sliceData = sliceData.slice(1);
         cutoff += 1;
     }
@@ -178,7 +176,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     var transTextX = function(d) { return d.midpos[0] + (d.transform.x || 0); };
     var transTextY = function(d) { return d.midpos[1] + (d.transform.y || 0); };
 
-    slices = slices.data(sliceData, function(pt) { return getPtId(pt); });
+    slices = slices.data(sliceData, function(pt) { return helpers.getPtId(pt); });
 
     slices.enter().append('g')
         .classed('slice', true);
@@ -210,7 +208,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             // N.B. gd._transitioning is (still) *true* by the time
             // transition updates get hare
             var sliceTop = d3.select(this);
-            setSliceCursor(sliceTop, gd, {isTransitioning: false});
+            helpers.setSliceCursor(sliceTop, gd, {isTransitioning: false});
         });
     }
 
@@ -237,7 +235,7 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         sliceTop
             .call(attachFxHandlers, gd, cd)
-            .call(setSliceCursor, gd, {isTransitioning: gd._transitioning});
+            .call(helpers.setSliceCursor, gd, {isTransitioning: gd._transitioning});
 
         slicePath.call(styleOne, pt, trace);
 
@@ -251,9 +249,9 @@ function plotOne(gd, cd, element, transitionOpts) {
         sliceText.text(formatSliceLabel(pt, trace, fullLayout))
             .classed('slicetext', true)
             .attr('text-anchor', 'middle')
-            .call(Drawing.font, isHierachyRoot(pt) ?
-              determineOutsideTextFont(trace, pt, fullLayout.font) :
-              determineInsideTextFont(trace, pt, fullLayout.font))
+            .call(Drawing.font, helpers.isHierachyRoot(pt) ?
+              helpers.determineOutsideTextFont(trace, pt, fullLayout.font) :
+              helpers.determineInsideTextFont(trace, pt, fullLayout.font))
             .call(svgTextUtils.convertToTspans, gd);
 
         // position the text relative to the slice
@@ -289,9 +287,9 @@ function plotOne(gd, cd, element, transitionOpts) {
     });
 
     function makeExitSliceInterpolator(pt) {
-        var id = getPtId(pt);
+        var id = helpers.getPtId(pt);
         var prev = prevLookup[id];
-        var entryPrev = prevLookup[getPtId(entry)];
+        var entryPrev = prevLookup[helpers.getPtId(entry)];
         var next = {};
 
         if(entryPrev) {
@@ -301,16 +299,16 @@ function plotOne(gd, cd, element, transitionOpts) {
             // this happens when maxdepth is set, when leaves must
             // be removed and the rootPt is new (i.e. does not have a 'prev' object)
             var parent;
-            var parentId = getPtId(pt.parent);
+            var parentId = helpers.getPtId(pt.parent);
             slices.each(function(pt2) {
-                if(getPtId(pt2) === parentId) {
+                if(helpers.getPtId(pt2) === parentId) {
                     return parent = pt2;
                 }
             });
             var parentChildren = parent.children;
             var ci;
             parentChildren.forEach(function(pt2, i) {
-                if(getPtId(pt2) === id) {
+                if(helpers.getPtId(pt2) === id) {
                     return ci = i;
                 }
             });
@@ -329,7 +327,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 
     function makeUpdateSliceIntepolator(pt) {
-        var prev0 = prevLookup[getPtId(pt)];
+        var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {};
         Lib.extendFlat(prev, ORIGIN);
 
@@ -357,7 +355,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 
     function makeUpdateTextInterpolar(pt) {
-        var prev0 = prevLookup[getPtId(pt)];
+        var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {
             transform: {
                 scale: 0,
@@ -417,7 +415,7 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     function interpFromParent(pt) {
         var parent = pt.parent;
-        var parentPrev = prevLookup[getPtId(parent)];
+        var parentPrev = prevLookup[helpers.getPtId(parent)];
 
         if(parentPrev) {
             // if parent is visible
@@ -456,56 +454,6 @@ function partition(entry, size) {
         .treemap()
         .tile(d3Hierarchy[treemapType])
         .size(size)(entry);
-}
-
-function findEntryWithLevel(hierarchy, level) {
-    var out;
-    if(level) {
-        hierarchy.eachAfter(function(pt) {
-            if(getPtId(pt) === level) {
-                return out = pt.copy();
-            }
-        });
-    }
-    return out || hierarchy;
-}
-
-function findEntryWithChild(hierarchy, childId) {
-    var out;
-    hierarchy.eachAfter(function(pt) {
-        var children = pt.children || [];
-        for(var i = 0; i < children.length; i++) {
-            var child = children[i];
-            if(getPtId(child) === childId) {
-                return out = pt.copy();
-            }
-        }
-    });
-    return out || hierarchy;
-}
-
-function isHierachyRoot(pt) {
-    var cdi = pt.data.data;
-    return cdi.pid === '';
-}
-
-function isEntry(pt) {
-    return !pt.parent;
-}
-
-function isLeaf(pt) {
-    return !pt.children;
-}
-
-function getPtId(pt) {
-    var cdi = pt.data.data;
-    return cdi.id;
-}
-
-function setSliceCursor(sliceTop, gd, opts) {
-    var pt = sliceTop.datum();
-    var isTransitioning = (opts || {}).isTransitioning;
-    setCursor(sliceTop, (isTransitioning || isLeaf(pt) || isHierachyRoot(pt)) ? null : 'pointer');
 }
 
 function attachFxHandlers(sliceTop, gd, cd) {
@@ -583,7 +531,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
                 textAlign: _cast('hoverlabel.align'),
                 hovertemplate: hovertemplate,
                 hovertemplateLabels: hoverPt,
-                eventData: [makeEventData(pt, traceNow)]
+                eventData: [helpers.makeEventData(pt, traceNow)]
             }, {
                 container: fullLayoutNow._hoverlayer.node(),
                 outerContainer: fullLayoutNow._paper.node(),
@@ -595,7 +543,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
 
         trace._hasHoverEvent = true;
         gd.emit('plotly_hover', {
-            points: [makeEventData(pt, traceNow)],
+            points: [helpers.makeEventData(pt, traceNow)],
             event: d3.event
         });
     });
@@ -608,7 +556,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
         if(trace._hasHoverEvent) {
             evt.originalEvent = d3.event;
             gd.emit('plotly_unhover', {
-                points: [makeEventData(pt, traceNow)],
+                points: [helpers.makeEventData(pt, traceNow)],
                 event: d3.event
             });
             trace._hasHoverEvent = false;
@@ -630,15 +578,15 @@ function attachFxHandlers(sliceTop, gd, cd) {
         var traceNow = gd._fullData[trace.index];
 
         var clickVal = Events.triggerHandler(gd, 'plotly_treemapclick', {
-            points: [makeEventData(pt, traceNow)],
+            points: [helpers.makeEventData(pt, traceNow)],
             event: d3.event
         });
 
         // 'regular' click event when treemapclick is disabled or when
         // clikcin on leaves or the hierarchy root
-        if(clickVal === false || isLeaf(pt) || isHierachyRoot(pt)) {
+        if(clickVal === false || helpers.isLeaf(pt) || helpers.isHierachyRoot(pt)) {
             if(fullLayoutNow.hovermode) {
-                gd._hoverdata = [makeEventData(pt, traceNow)];
+                gd._hoverdata = [helpers.makeEventData(pt, traceNow)];
                 Fx.click(gd, d3.event);
             }
             return;
@@ -656,13 +604,13 @@ function attachFxHandlers(sliceTop, gd, cd) {
         Registry.call('_storeDirectGUIEdit', traceNow, fullLayoutNow._tracePreGUI[traceNow.uid], {level: traceNow.level});
 
         var hierarchy = cd0.hierarchy;
-        var id = getPtId(pt);
-        var nextEntry = isEntry(pt) ?
-            findEntryWithChild(hierarchy, id) :
-            findEntryWithLevel(hierarchy, id);
+        var id = helpers.getPtId(pt);
+        var nextEntry = helpers.isEntry(pt) ?
+            helpers.findEntryWithChild(hierarchy, id) :
+            helpers.findEntryWithLevel(hierarchy, id);
 
         var frame = {
-            data: [{level: getPtId(nextEntry)}],
+            data: [{level: helpers.getPtId(nextEntry)}],
             traces: [trace.index]
         };
 
@@ -682,23 +630,6 @@ function attachFxHandlers(sliceTop, gd, cd) {
         Fx.loneUnhover(fullLayoutNow._hoverlayer.node());
         Registry.call('animate', gd, frame, animOpts);
     });
-}
-
-function makeEventData(pt, trace) {
-    var cdi = pt.data.data;
-
-    var out = {
-        curveNumber: trace.index,
-        pointNumber: cdi.i,
-        data: trace._input,
-        fullData: trace,
-
-        // TODO more things like 'children', 'siblings', 'hierarchy?
-    };
-
-    appendArrayPointValue(out, trace, cdi.i);
-
-    return out;
 }
 
 function formatSliceLabel(pt, trace, fullLayout) {
@@ -747,55 +678,4 @@ function formatSliceLabel(pt, trace, fullLayout) {
     if(Lib.isValidTextValue(ptTx)) obj.text = ptTx;
     obj.customdata = Lib.castOption(trace, cdi.i, 'customdata');
     return Lib.texttemplateString(txt, obj, fullLayout._d3locale, obj, trace._meta || {});
-}
-
-function determineOutsideTextFont(trace, pt, layoutFont) {
-    var cdi = pt.data.data;
-    var ptNumber = cdi.i;
-
-    var color = Lib.castOption(trace, ptNumber, 'outsidetextfont.color') ||
-        Lib.castOption(trace, ptNumber, 'textfont.color') ||
-        layoutFont.color;
-
-    var family = Lib.castOption(trace, ptNumber, 'outsidetextfont.family') ||
-        Lib.castOption(trace, ptNumber, 'textfont.family') ||
-        layoutFont.family;
-
-    var size = Lib.castOption(trace, ptNumber, 'outsidetextfont.size') ||
-        Lib.castOption(trace, ptNumber, 'textfont.size') ||
-        layoutFont.size;
-
-    return {
-        color: color,
-        family: family,
-        size: size
-    };
-}
-
-function determineInsideTextFont(trace, pt, layoutFont) {
-    var cdi = pt.data.data;
-    var ptNumber = cdi.i;
-
-    var customColor = Lib.castOption(trace, ptNumber, 'insidetextfont.color');
-    if(!customColor && trace._input.textfont) {
-        // Why not simply using trace.textfont? Because if not set, it
-        // defaults to layout.font which has a default color. But if
-        // textfont.color and insidetextfont.color don't supply a value,
-        // a contrasting color shall be used.
-        customColor = Lib.castOption(trace._input, ptNumber, 'textfont.color');
-    }
-
-    var family = Lib.castOption(trace, ptNumber, 'insidetextfont.family') ||
-        Lib.castOption(trace, ptNumber, 'textfont.family') ||
-        layoutFont.family;
-
-    var size = Lib.castOption(trace, ptNumber, 'insidetextfont.size') ||
-        Lib.castOption(trace, ptNumber, 'textfont.size') ||
-        layoutFont.size;
-
-    return {
-        color: customColor || Color.contrast(cdi.color),
-        family: family,
-        size: size
-    };
 }
