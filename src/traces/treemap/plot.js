@@ -267,8 +267,8 @@ function plotOne(gd, cd, element, transitionOpts) {
         pt.transform = toMoveInsideBar(pt.x0, pt.x1, pt.y0, pt.y1, textBB, {
             isHorizontal: false,
             constrained: true,
-            anchor: 'middle',
-            angle: 0
+            angle: cd0.trace.textangle,
+            anchor: 'middle'
         });
         pt.transform.scale *= 100; // TODO: remove this hack
 
@@ -277,7 +277,8 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         var strTransform = function(d, textBB) {
             return 'translate(' + d.translateX + ',' + d.translateY + ')' +
-                'scale(' + d.transform.scale + ')' +
+                (d.transform.scale ? 'scale(' + d.transform.scale + ')' : '') +
+                (d.transform.rotate ? 'rotate(' + d.transform.rotate + ')' : '') +
                 'translate(' +
                     (-(textBB.left + textBB.right) / 2) + ',' +
                     (-(textBB.top + textBB.bottom) / 2) +
@@ -390,6 +391,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var y0Fn = d3.interpolate(prev.y0, pt.y0);
         var y1Fn = d3.interpolate(prev.y1, pt.y1);
         var scaleFn = d3.interpolate(prev.transform.scale, pt.transform.scale);
+        var rotateFn = d3.interpolate(prev.transform.rotate, pt.transform.rotate);
 
         return function(t) {
             var x0 = x0Fn(t);
@@ -413,7 +415,8 @@ function plotOne(gd, cd, element, transitionOpts) {
                 translateX: transTextX(d),
                 translateY: transTextY(d),
                 transform: {
-                    scale: scaleFn(t)
+                    scale: scaleFn(t),
+                    rotate: rotateFn(t)
                 }
             };
         };

@@ -13,6 +13,7 @@ var hovertemplateAttrs = require('../../components/fx/hovertemplate_attributes')
 // var texttemplateAttrs = require('../../plots/texttemplate_attributes');
 var domainAttrs = require('../../plots/domain').attributes;
 var pieAttrs = require('../pie/attributes');
+var barAttrs = require('../bar/attributes');
 
 var extendFlat = require('../../lib/extend').extendFlat;
 
@@ -181,6 +182,8 @@ module.exports = {
     textfont: pieAttrs.textfont,
     insidetextfont: pieAttrs.insidetextfont,
     outsidetextfont: pieAttrs.outsidetextfont,
+
+    textangle: extendFlat({}, barAttrs.textangle, {dflt: 0}),
 
     domain: domainAttrs({name: 'treemap', trace: true, editType: 'calc'})
 };

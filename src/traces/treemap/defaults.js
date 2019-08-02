@@ -52,7 +52,7 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         moduleHasUnselected: false,
         moduleHasConstrain: false,
         moduleHasCliponaxis: false,
-        moduleHasTextangle: false,
+        moduleHasTextangle: true,
         moduleHasInsideanchor: false
     });
 
