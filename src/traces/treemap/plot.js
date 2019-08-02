@@ -80,6 +80,13 @@ module.exports = function(gd, cdmodule, transitionOpts, makeOnCompleteCallback) 
     }
 };
 
+var ORIGIN = {
+    x0: 0,
+    x1: 0,
+    y0: 0,
+    y1: 0
+};
+
 function plotOne(gd, cd, element, transitionOpts) {
     var fullLayout = gd._fullLayout;
     // We could optimize hasTransition per trace,
@@ -291,11 +298,11 @@ function plotOne(gd, cd, element, transitionOpts) {
         var id = getPtId(pt);
         var prev = prevLookup[id];
         var entryPrev = prevLookup[getPtId(entry)];
-        var next;
+        var next = {};
 
         if(entryPrev) {
             // if pt to remove:
-            next = {y0: 0, y1: 0, x0: 0, x1: 0};
+            Lib.extendFlat(next, ORIGIN);
         } else {
             // this happens when maxdepth is set, when leaves must
             // be removed and the rootPt is new (i.e. does not have a 'prev' object)
@@ -329,12 +336,9 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[getPtId(pt)];
-        var prev = {
-            x0: 0,
-            x1: 0,
-            y0: 0,
-            y1: 0
-        };
+        var prev = {};
+        Lib.extendFlat(prev, ORIGIN);
+
         var next = {
             x0: pt.x0,
             x1: pt.x1,
@@ -365,12 +369,9 @@ function plotOne(gd, cd, element, transitionOpts) {
                 scale: 0,
                 x: pt.transform.x,
                 y: pt.transform.y
-            },
-            x0: 0,
-            x1: 0,
-            y0: 0,
-            y1: 0
+            }
         };
+        Lib.extendFlat(prev, ORIGIN);
 
         if(prev0) {
             prev = prev0;
@@ -438,12 +439,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
         }
 
-        return {
-            x0: 0,
-            x1: 0,
-            y0: 0,
-            y1: 0
-        };
+        return Lib.extendFlat({}, ORIGIN);
     }
 }
 
