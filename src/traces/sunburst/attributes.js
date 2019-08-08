@@ -10,6 +10,7 @@
 
 var plotAttrs = require('../../plots/attributes');
 var hovertemplateAttrs = require('../../components/fx/hovertemplate_attributes');
+var colorScaleAttrs = require('../../components/colorscale/attributes');
 var domainAttrs = require('../../plots/domain').attributes;
 var pieAttrs = require('../pie/attributes');
 
@@ -81,7 +82,7 @@ module.exports = {
         ].join(' ')
     },
 
-    marker: {
+    marker: extendFlat({
         colors: {
             valType: 'data_array',
             editType: 'calc',
@@ -110,6 +111,11 @@ module.exports = {
         },
         editType: 'calc'
     },
+        colorScaleAttrs('marker', {
+            colorAttr: 'colors',
+            anim: false // TODO: set to anim: true?
+        })
+    ),
 
     leaf: {
         opacity: {
@@ -118,8 +124,10 @@ module.exports = {
             role: 'style',
             min: 0,
             max: 1,
-            dflt: 0.7,
-            description: 'Sets the opacity of the leaves.'
+            description: [
+                'Sets the opacity of the leaves. With colorscale',
+                'it is defaulted to 1; otherwise it is defaulted to 0.7'
+            ].join(' ')
         },
         editType: 'plot'
     },

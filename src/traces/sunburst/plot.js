@@ -244,7 +244,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         sliceText.text(formatSliceLabel(pt, trace, fullLayout))
             .classed('slicetext', true)
             .attr('text-anchor', 'middle')
-            .call(Drawing.font, helpers.isHierachyRoot(pt) ?
+            .call(Drawing.font, (helpers.isHierachyRoot(pt) && !trace._hasColorscale) ?
               helpers.determineOutsideTextFont(trace, pt, fullLayout.font) :
               helpers.determineInsideTextFont(trace, pt, fullLayout.font))
             .call(svgTextUtils.convertToTspans, gd);

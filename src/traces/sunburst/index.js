@@ -26,6 +26,8 @@ module.exports = {
     plot: require('./plot'),
     style: require('./style').style,
 
+    colorbar: require('../scatter/marker_colorbar'),
+
     meta: {
         description: [
             'Visualize hierarchal data spanning outward radially from root to leaves.',
