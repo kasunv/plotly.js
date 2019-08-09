@@ -140,16 +140,14 @@ function plotOne(gd, cd, element, transitionOpts) {
         tiling: trace.tiling,
         padding: trace.marker.padding
     }).descendants();
-    var cutoff = maxDepth;
 
     // N.B. handle multiple-root special case
     if(cd0.hasMultipleRoots && helpers.isHierachyRoot(entry)) {
         sliceData = sliceData.slice(1);
-        cutoff += 1;
     }
 
     // filter out slices that won't show up on graph
-    sliceData = sliceData.filter(function(pt) { return pt.y1 <= cutoff; });
+    sliceData = sliceData.filter(function(pt) { return pt.depth <= maxDepth; });
 
     var getX = function(x) { return x + cx - vpw / 2; };
     var getY = function(y) { return y + cy - vph / 2; };
