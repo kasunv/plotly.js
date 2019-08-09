@@ -19,6 +19,21 @@ var barAttrs = require('../bar/attributes');
 var extendFlat = require('../../lib/extend').extendFlat;
 
 module.exports = {
+    tiling: {
+        dflt: 'Squarify',
+        values: [
+            'Binary',
+            'Squarify', // this algorithm accepts an extra 'ratio' parameter. What should we do about that?
+            // 'Resquarify',
+            'SliceDice',
+            'Slice',
+            'Dice'
+        ],
+        valType: 'enumerated',
+        role: 'info',
+        editType: 'plot'
+    },
+
     labels: {
         valType: 'data_array',
         editType: 'calc',
@@ -100,6 +115,72 @@ module.exports = {
         //     values: ['per-branch', 'per-label', false]
         // },
 
+        opacity: {
+            valType: 'number',
+            editType: 'plot',
+            role: 'style',
+            min: 0,
+            max: 1,
+            description: [
+                'Sets the opacity for the overlays. With colorscale',
+                'it is defaulted to 1; otherwise it is defaulted to 0.5'
+            ].join(' ')
+        },
+
+        padding: {
+            inside: {
+                valType: 'number',
+                role: 'style',
+                min: 0,
+                dflt: 0,
+                editType: 'plot',
+                description: [
+                    'Sets the inner padding (in px).'
+                ].join(' ')
+            },
+            top: {
+                valType: 'number',
+                role: 'style',
+                min: 0,
+                dflt: 5,
+                editType: 'plot',
+                description: [
+                    'Sets the padding form the top (in px).'
+                ].join(' ')
+            },
+            left: {
+                valType: 'number',
+                role: 'style',
+                min: 0,
+                dflt: 5,
+                editType: 'plot',
+                description: [
+                    'Sets the padding form the left (in px).'
+                ].join(' ')
+            },
+            right: {
+                valType: 'number',
+                role: 'style',
+                min: 0,
+                dflt: 5,
+                editType: 'plot',
+                description: [
+                    'Sets the padding form the right (in px).'
+                ].join(' ')
+            },
+            bottom: {
+                valType: 'number',
+                role: 'style',
+                min: 0,
+                dflt: 5,
+                editType: 'plot',
+                description: [
+                    'Sets the padding form the bottom (in px).'
+                ].join(' ')
+            },
+            editType: 'plot'
+        },
+
         line: {
             color: extendFlat({}, pieAttrs.marker.line.color, {
                 dflt: null,
@@ -110,18 +191,6 @@ module.exports = {
             }),
             width: extendFlat({}, pieAttrs.marker.line.width, {dflt: 1}),
             editType: 'calc'
-        },
-
-        opacity: {
-            valType: 'number',
-            editType: 'style',
-            role: 'style',
-            min: 0,
-            max: 1,
-            description: [
-                'Sets the opacity for the overlays. With colorscale',
-                'it is defaulted to 1; otherwise it is defaulted to 0.5'
-            ].join(' ')
         },
 
         editType: 'calc'

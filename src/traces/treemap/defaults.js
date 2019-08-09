@@ -34,6 +34,13 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     coerce('level');
     coerce('maxdepth');
 
+    coerce('tiling');
+    coerce('marker.padding.inside');
+    coerce('marker.padding.top');
+    coerce('marker.padding.left');
+    coerce('marker.padding.right');
+    coerce('marker.padding.bottom');
+
     var lineWidth = coerce('marker.line.width');
     if(lineWidth) coerce('marker.line.color', layout.paper_bgcolor);
 

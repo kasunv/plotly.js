@@ -136,7 +136,10 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     // N.B. slice data isn't the calcdata,
     // grab corresponding calcdata item in sliceData[i].data.data
-    var sliceData = partition(entry, [vpw, vph]).descendants();
+    var sliceData = partition(entry, [vpw, vph], {
+        tiling: trace.tiling,
+        padding: trace.marker.padding
+    }).descendants();
     var cutoff = maxDepth;
 
     // N.B. handle multiple-root special case
@@ -438,23 +441,20 @@ function plotOne(gd, cd, element, transitionOpts) {
     }
 }
 
-var TREEMAP_TYPES = [
-    'treemapBinary',
-    'treemapSquarify',
-    'treemapSliceDice',
-    'treemapSlice',
-    'treemapDice'
-];
-
-var treemapType = TREEMAP_TYPES[1];
-
 // x[0-1] keys are hierarchy heights [integers]
 // y[0-1] keys are hierarchy heights [integers]
-function partition(entry, size) {
+function partition(entry, size, opts) {
     return d3Hierarchy
         .treemap()
-        .tile(d3Hierarchy[treemapType])
-        .size(size)(entry);
+        .tile(d3Hierarchy['treemap' + opts.tiling])
+        .paddingInner(opts.padding.inside)
+        .paddingTop(opts.padding.top)
+        .paddingLeft(opts.padding.left)
+        .paddingRight(opts.padding.right)
+        .paddingBottom(opts.padding.bottom)
+        .size(size)(
+            entry
+        );
 }
 
 function attachFxHandlers(sliceTop, gd, cd) {

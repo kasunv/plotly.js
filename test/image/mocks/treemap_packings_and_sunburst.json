@@ -1,0 +1,346 @@
+{
+    "data": [
+        {
+            "type": "treemap",
+            "name": "Binary treemap",
+            "tiling": "Binary",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0,
+                    0.3
+                ],
+                "y": [
+                    0,
+                    0.48
+                ]
+            }
+        },
+        {
+            "type": "sunburst",
+            "name": "sunburst",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0.35,
+                    0.65
+                ],
+                "y": [
+                    0,
+                    0.48
+                ]
+            }
+        },
+        {
+            "type": "treemap",
+            "name": "Squarify treemap",
+            "tiling": "Squarify",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0.7,
+                    1
+                ],
+                "y": [
+                    0,
+                    0.48
+                ]
+            }
+        },
+        {
+            "type": "treemap",
+            "name": "Slice treemap",
+            "tiling": "Slice",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0,
+                    0.3
+                ],
+                "y": [
+                    0.52,
+                    1
+                ]
+            }
+        },
+        {
+            "type": "treemap",
+            "name": "SliceDice treemap",
+            "tiling": "SliceDice",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0.35,
+                    0.65
+                ],
+                "y": [
+                    0.52,
+                    1
+                ]
+            }
+        },
+        {
+            "type": "treemap",
+            "name": "Dice treemap",
+            "tiling": "Dice",
+            "labels": [
+                "Eve",
+                "Cain",
+                "Seth",
+                "Enos",
+                "Noam",
+                "Abel",
+                "Awan",
+                "Enoch",
+                "Azura"
+            ],
+            "parents": [
+                "",
+                "Eve",
+                "Eve",
+                "Seth",
+                "Seth",
+                "Eve",
+                "Eve",
+                "Awan",
+                "Eve"
+            ],
+            "values": [
+                10,
+                14,
+                12,
+                10,
+                2,
+                6,
+                6,
+                1,
+                4
+            ],
+            "domain": {
+                "x": [
+                    0.7,
+                    1
+                ],
+                "y": [
+                    0.52,
+                    1
+                ]
+            }
+        }
+    ],
+    "layout": {
+        "paper_bgcolor": "#d3d3d3",
+        "width": 900,
+        "height": 600,
+        "annotations": [
+            {
+                "showarrow": false,
+                "text": "<b>Binary</b> treemap<br>The last area is <b>NOT</b> displayed correctly!",
+                "x": 0.15,
+                "xanchor": "center",
+                "y": 0,
+                "yanchor": "top"
+            },
+            {
+                "showarrow": false,
+                "text": "<b>S U N B U R S T</b>",
+                "x": 0.5,
+                "xanchor": "center",
+                "y": 0,
+                "yanchor": "top"
+            },
+            {
+                "showarrow": false,
+                "text": "<b>Squarify</b> treemap",
+                "x": 0.85,
+                "xanchor": "center",
+                "y": 0,
+                "yanchor": "top"
+            },
+            {
+                "showarrow": false,
+                "text": "<b>Slice</b> treemap",
+                "x": 0.15,
+                "xanchor": "center",
+                "y": 1,
+                "yanchor": "bottom"
+            },
+            {
+                "showarrow": false,
+                "text": "<b>SliceDice</b> treemap",
+                "x": 0.5,
+                "xanchor": "center",
+                "y": 1,
+                "yanchor": "bottom"
+            },
+            {
+                "showarrow": false,
+                "text": "<b>Dice</b> treemap",
+                "x": 0.85,
+                "xanchor": "center",
+                "y": 1,
+                "yanchor": "bottom"
+            }
+        ]
+    }
+}
