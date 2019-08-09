@@ -8,8 +8,7 @@
       "values":  [10, 14, 12, 10, 2, 6, 6, 1, 4],
       "domain": {"x": [0, 0.48]},
       "outsidetextfont": {"size": 20, "color": "#377eb8"},
-      "leaf": {"opacity": 0.4},
-      "marker": {"line": {"width": 2}}
+      "marker": {"opacity": 0.4, "line": {"width": 2}}
     },
     {
       "type": "treemap",
@@ -20,8 +19,7 @@
       "domain": {"x": [0.52, 1]},
       "values": [65, 14, 12, 10, 2, 6, 6, 1, 4],
       "outsidetextfont": {"size": 20, "color": "#377eb8"},
-      "leaf": {"opacity": 0.4},
-      "marker": {"line": {"width": 2}}
+      "marker": {"opacity": 0.4, "line": {"width": 2}}
     }
   ],
   "layout": {

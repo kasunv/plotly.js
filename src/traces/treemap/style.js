@@ -28,7 +28,6 @@ function style(gd) {
 
 function styleOne(s, pt, trace) {
     var cdi = pt.data.data;
-    var isLeaf = !pt.children;
     var ptNumber = cdi.i;
     var lineColor = Lib.castOption(trace, ptNumber, 'marker.line.color') || Color.defaultLine;
     var lineWidth = Lib.castOption(trace, ptNumber, 'marker.line.width') || 0;
@@ -36,7 +35,7 @@ function styleOne(s, pt, trace) {
     s.style('stroke-width', lineWidth)
         .call(Color.fill, cdi.color)
         .call(Color.stroke, lineColor)
-        .style('opacity', isLeaf ? trace.leaf.opacity : null);
+        .style('opacity', trace.marker.opacity);
 }
 
 module.exports = {

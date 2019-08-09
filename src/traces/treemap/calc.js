@@ -12,6 +12,9 @@ var d3Hierarchy = require('d3-hierarchy');
 var isNumeric = require('fast-isnumeric');
 
 var Lib = require('../../lib');
+var hasColorscale = require('../../components/colorscale/helpers').hasColorscale;
+var colorscaleCalc = require('../../components/colorscale/calc');
+var makeColorScaleFn = require('../../components/colorscale').makeColorScaleFuncFromTrace;
 var makePullColorFn = require('../pie/calc').makePullColorFn;
 var generateExtendedColors = require('../pie/calc').generateExtendedColors;
 
@@ -176,16 +179,34 @@ exports.calc = function(gd, trace) {
     // TODO add way to sort by height also?
     hierarchy.sort(function(a, b) { return b.value - a.value; });
 
+    var pullColor;
+    var scaleColor;
     var colors = trace.marker.colors || [];
-    var pullColor = makePullColorFn(fullLayout._treemapcolormap);
+    trace._hasColorscale = hasColorscale(trace, 'marker');
+    if(trace._hasColorscale) {
+        if(!colors.length && hasVals) {
+            colors = trace.values;
+        }
+
+        colorscaleCalc(gd, trace, {
+            vals: colors,
+            containerStr: 'marker',
+            cLetter: 'c'
+        });
+
+        scaleColor = makeColorScaleFn(trace.marker);
+    } else {
+        pullColor = makePullColorFn(fullLayout._treemapcolormap);
+    }
 
     // TODO keep track of 'root-children' (i.e. branch) for hover info etc.
 
     hierarchy.each(function(d) {
         var cdi = d.data.data;
-        var id = cdi.id;
         // N.B. this mutates items in `cd`
-        cdi.color = pullColor(colors[cdi.i], id);
+        cdi.color = trace._hasColorscale ?
+            scaleColor(colors[cdi.i]) :
+            pullColor(colors[cdi.i], cdi.id);
     });
 
     cd[0].hierarchy = hierarchy;
