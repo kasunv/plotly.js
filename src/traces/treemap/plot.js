@@ -267,29 +267,27 @@ function plotOne(gd, cd, element, transitionOpts) {
             anchor: trace.insidetextanchor
         });
 
-        // fix the scale here!
-        if(pt.transform.scale > 1) pt.transform.scale = 1;
-
         pt.translateX = transTextX(pt);
         pt.translateY = transTextY(pt);
 
-        var strTransform = function(d, textBB) {
-            return 'translate(' + d.translateX + ',' + d.translateY + ')' +
-                (d.transform.scale ? 'scale(' + d.transform.scale + ')' : '') +
-                (d.transform.rotate ? 'rotate(' + d.transform.rotate + ')' : '') +
-                'translate(' +
-                    (-(textBB.left + textBB.right) / 2) + ',' +
-                    (-(textBB.top + textBB.bottom) / 2) +
-                ')';
+        var strTransform = function(d) {
+            return getTransform({
+                textX: d.transform.textX,
+                textY: d.transform.textY,
+                targetX: getX(d.transform.targetX),
+                targetY: getY(d.transform.targetY),
+                scale: d.transform.scale,
+                rotate: d.transform.rotate
+            });
         };
 
         if(hasTransition) {
             sliceText.transition().attrTween('transform', function(pt2) {
                 var interp = makeUpdateTextInterpolar(pt2);
-                return function(t) { return strTransform(interp(t), textBB); };
+                return function(t) { return strTransform(interp(t)); };
             });
         } else {
-            sliceText.attr('transform', strTransform(pt, textBB));
+            sliceText.attr('transform', strTransform(pt));
         }
     });
 
