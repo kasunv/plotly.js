@@ -176,10 +176,6 @@ function plotOne(gd, cd, element, transitionOpts) {
         );
     };
 
-    // slice text translate x/y
-    var transTextX = function(d) { return d.midpos[0] + (d.transform.x || 0); };
-    var transTextY = function(d) { return d.midpos[1] + (d.transform.y || 0); };
-
     slices = slices.data(sliceData, function(pt) { return helpers.getPtId(pt); });
 
     slices.enter().append('g')
@@ -267,15 +263,15 @@ function plotOne(gd, cd, element, transitionOpts) {
             anchor: trace.insidetextanchor
         });
 
-        pt.translateX = transTextX(pt);
-        pt.translateY = transTextY(pt);
+        pt.transform.targetX = getX(pt.transform.targetX);
+        pt.transform.targetY = getY(pt.transform.targetY);
 
         var strTransform = function(d) {
             return getTransform({
                 textX: d.transform.textX,
                 textY: d.transform.textY,
-                targetX: getX(d.transform.targetX),
-                targetY: getY(d.transform.targetY),
+                targetX: d.transform.targetX,
+                targetY: d.transform.targetY,
                 scale: d.transform.scale,
                 rotate: d.transform.rotate
             });
@@ -365,11 +361,12 @@ function plotOne(gd, cd, element, transitionOpts) {
             transform: {
                 scale: 0,
                 rotate: 0,
-                x: pt.transform.x,
-                y: pt.transform.y
+                textX: 0,
+                textY: 0,
+                targetX: 0,
+                targetY: 0
             }
         };
-        Lib.extendFlat(prev, ORIGIN);
 
         if(prev0) {
             prev = prev0;
@@ -383,37 +380,22 @@ function plotOne(gd, cd, element, transitionOpts) {
             }
         }
 
-        var x0Fn = d3.interpolate(prev.x0, pt.x0);
-        var x1Fn = d3.interpolate(prev.x1, pt.x1);
-        var y0Fn = d3.interpolate(prev.y0, pt.y0);
-        var y1Fn = d3.interpolate(prev.y1, pt.y1);
         var scaleFn = d3.interpolate(prev.transform.scale, pt.transform.scale);
         var rotateFn = d3.interpolate(prev.transform.rotate, pt.transform.rotate);
+        var textXFn = d3.interpolate(prev.transform.textX, pt.transform.textX);
+        var textYFn = d3.interpolate(prev.transform.textY, pt.transform.textY);
+        var targetXFn = d3.interpolate(prev.transform.targetX, pt.transform.targetX);
+        var targetYFn = d3.interpolate(prev.transform.targetY, pt.transform.targetY);
 
         return function(t) {
-            var x0 = x0Fn(t);
-            var x1 = x1Fn(t);
-            var y0 = y0Fn(t);
-            var y1 = y1Fn(t);
-
-            var d = {
-                midpos: toPoint((x0 + x1) / 2, (y0 + y1) / 2),
-                transform: {
-                    x: pt.transform.x,
-                    y: pt.transform.y
-                }
-            };
-
             return {
-                x0: x0Fn(t),
-                x1: x1Fn(t),
-                y0: y0Fn(t),
-                y1: y1Fn(t),
-                translateX: transTextX(d),
-                translateY: transTextY(d),
                 transform: {
                     scale: scaleFn(t),
-                    rotate: rotateFn(t)
+                    rotate: rotateFn(t),
+                    textX: textXFn(t),
+                    textY: textYFn(t),
+                    targetX: targetXFn(t),
+                    targetY: targetYFn(t)
                 }
             };
         };
