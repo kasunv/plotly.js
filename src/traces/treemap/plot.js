@@ -18,7 +18,9 @@ var Lib = require('../../lib');
 var Events = require('../../lib/events');
 var svgTextUtils = require('../../lib/svg_text_utils');
 
-var toMoveInsideBar = require('../bar/plot').toMoveInsideBar;
+var barPlot = require('../bar/plot');
+var toMoveInsideBar = barPlot.toMoveInsideBar;
+var getTransform = barPlot.getTransform;
 var formatPieValue = require('../pie/helpers').formatPieValue;
 var styleOne = require('./style').styleOne;
 
@@ -261,9 +263,12 @@ function plotOne(gd, cd, element, transitionOpts) {
         pt.transform = toMoveInsideBar(pt.x0, pt.x1, pt.y0, pt.y1, textBB, {
             isHorizontal: false,
             constrained: true,
-            angle: cd0.trace.textangle,
-            anchor: 'middle'
+            angle: trace.textangle,
+            anchor: trace.insidetextanchor
         });
+
+        // fix the scale here!
+        if(pt.transform.scale > 1) pt.transform.scale = 1;
 
         pt.translateX = transTextX(pt);
         pt.translateY = transTextY(pt);

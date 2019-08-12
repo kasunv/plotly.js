@@ -259,6 +259,7 @@ module.exports = {
     outsidetextfont: pieAttrs.outsidetextfont,
 
     textangle: extendFlat({}, barAttrs.textangle, {dflt: 0}),
+    insidetextanchor: extendFlat({}, barAttrs.insidetextanchor, {dflt: 'start'}),
 
     domain: domainAttrs({name: 'treemap', trace: true, editType: 'calc'})
 };

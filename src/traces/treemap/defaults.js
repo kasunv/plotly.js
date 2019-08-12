@@ -66,7 +66,7 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         moduleHasConstrain: false,
         moduleHasCliponaxis: false,
         moduleHasTextangle: true,
-        moduleHasInsideanchor: false
+        moduleHasInsideanchor: true
     });
 
     handleDomainDefaults(traceOut, layout, coerce);
