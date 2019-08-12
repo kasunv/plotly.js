@@ -355,20 +355,34 @@ function plotOne(gd, cd, element, transitionOpts) {
         return d3.interpolate(prev, next);
     }
 
+
     function makeUpdateTextInterpolar(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
-        var prev = {
+        var prev = {};
+        Lib.extendFlat(prev, {
             transform: {
-                scale: 0,
+                scale: 1,
                 rotate: 0,
                 textX: 0,
                 textY: 0,
-                targetX: 0,
-                targetY: 0
+                targetX: getX(0),
+                targetY: getY(0)
+            }
+        });
+
+        var next = {
+            transform: {
+                scale: pt.transform.scale,
+                rotate: pt.transform.rotate,
+                textX: pt.transform.textX,
+                textY: pt.transform.textY,
+                targetX: pt.transform.targetX,
+                targetY: pt.transform.targetY
             }
         };
 
         if(prev0) {
+            // if pt already on graph, this is easy
             prev = prev0;
         } else {
             // for new pts:
@@ -380,25 +394,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             }
         }
 
-        var scaleFn = d3.interpolate(prev.transform.scale, pt.transform.scale);
-        var rotateFn = d3.interpolate(prev.transform.rotate, pt.transform.rotate);
-        var textXFn = d3.interpolate(prev.transform.textX, pt.transform.textX);
-        var textYFn = d3.interpolate(prev.transform.textY, pt.transform.textY);
-        var targetXFn = d3.interpolate(prev.transform.targetX, pt.transform.targetX);
-        var targetYFn = d3.interpolate(prev.transform.targetY, pt.transform.targetY);
-
-        return function(t) {
-            return {
-                transform: {
-                    scale: scaleFn(t),
-                    rotate: rotateFn(t),
-                    textX: textXFn(t),
-                    textY: textYFn(t),
-                    targetX: targetXFn(t),
-                    targetY: targetYFn(t)
-                }
-            };
-        };
+        return d3.interpolate(prev, next);
     }
 
     function interpFromParent(pt) {
@@ -410,14 +406,41 @@ function plotOne(gd, cd, element, transitionOpts) {
             var parentChildren = parent.children;
             var ci = parentChildren.indexOf(pt);
             var n = parentChildren.length;
-            var interpX = d3.interpolate(parentPrev.x0, parentPrev.x1);
-            var interpY = d3.interpolate(parentPrev.y0, parentPrev.y1);
 
+            var t = ci / n;
+            var q0 = parentPrev;
+            var q1 = pt;
             return {
-                x0: interpX(ci / n),
-                x1: interpX(ci / n),
-                y0: interpY(ci / n),
-                y1: interpY(ci / n)
+                x0: d3.interpolate(q0.x0, q1.x0)(t),
+                x1: d3.interpolate(q0.x1, q1.x1)(t),
+                y0: d3.interpolate(q0.y0, q1.y0)(t),
+                y1: d3.interpolate(q0.y1, q1.y1)(t),
+                transform: {
+                    scale: d3.interpolate(
+                        q0.transform.scale,
+                        q1.transform.scale
+                    )(t),
+                    rotate: d3.interpolate(
+                        q0.transform.rotate,
+                        q1.transform.rotate
+                    )(t),
+                    textX: d3.interpolate(
+                        q0.transform.textX,
+                        q1.transform.textX
+                    )(t),
+                    textY: d3.interpolate(
+                        q0.transform.textY,
+                        q1.transform.textY
+                    )(t),
+                    targetX: d3.interpolate(
+                        q0.transform.targetX,
+                        q1.transform.targetX
+                    )(t),
+                    targetY: d3.interpolate(
+                        q0.transform.targetY,
+                        q1.transform.targetY
+                    )(t)
+                }
             };
         }
 
