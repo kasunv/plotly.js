@@ -366,6 +366,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var prev = {
             transform: {
                 scale: 0,
+                rotate: 0,
                 x: pt.transform.x,
                 y: pt.transform.y
             }
