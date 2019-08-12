@@ -35,11 +35,6 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     coerce('maxdepth');
 
     coerce('tiling');
-    coerce('marker.padding.inside');
-    coerce('marker.padding.top');
-    coerce('marker.padding.left');
-    coerce('marker.padding.right');
-    coerce('marker.padding.bottom');
 
     var lineWidth = coerce('marker.line.width');
     if(lineWidth) coerce('marker.line.color', layout.paper_bgcolor);
@@ -68,6 +63,14 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         moduleHasTextangle: true,
         moduleHasInsideanchor: true
     });
+
+    var headerSize = traceOut.textfont.size * 1.6;
+
+    coerce('marker.padding.top', headerSize);
+    coerce('marker.padding.left', headerSize / 4);
+    coerce('marker.padding.right', headerSize / 4);
+    coerce('marker.padding.bottom', headerSize / 4);
+    coerce('marker.padding.inside');
 
     handleDomainDefaults(traceOut, layout, coerce);
 

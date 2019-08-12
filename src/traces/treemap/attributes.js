@@ -142,7 +142,7 @@ module.exports = {
                 valType: 'number',
                 role: 'style',
                 min: 0,
-                dflt: 5,
+                dflt: 'auto',
                 editType: 'plot',
                 description: [
                     'Sets the padding form the top (in px).'
@@ -152,7 +152,7 @@ module.exports = {
                 valType: 'number',
                 role: 'style',
                 min: 0,
-                dflt: 5,
+                dflt: 'auto',
                 editType: 'plot',
                 description: [
                     'Sets the padding form the left (in px).'
@@ -162,7 +162,7 @@ module.exports = {
                 valType: 'number',
                 role: 'style',
                 min: 0,
-                dflt: 5,
+                dflt: 'auto',
                 editType: 'plot',
                 description: [
                     'Sets the padding form the right (in px).'
@@ -172,7 +172,7 @@ module.exports = {
                 valType: 'number',
                 role: 'style',
                 min: 0,
-                dflt: 5,
+                dflt: 'auto',
                 editType: 'plot',
                 description: [
                     'Sets the padding form the bottom (in px).'
@@ -259,7 +259,7 @@ module.exports = {
     outsidetextfont: pieAttrs.outsidetextfont,
 
     textangle: extendFlat({}, barAttrs.textangle, {dflt: 0}),
-    insidetextanchor: extendFlat({}, barAttrs.insidetextanchor, {dflt: 'middle'}),
+    insidetextanchor: extendFlat({}, barAttrs.insidetextanchor, {dflt: 'start'}),
 
     domain: domainAttrs({name: 'treemap', trace: true, editType: 'calc'})
 };
