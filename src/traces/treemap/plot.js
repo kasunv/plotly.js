@@ -103,11 +103,61 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
-    var ORIGIN = {
-        x0: 0,
-        x1: 0,
-        y0: 0,
-        y1: 0
+    var getOrigin = function(x0, x1, y0, y1) {
+        var midX = (x0 + x1) / 2;
+        var midY = (y0 + y1) / 2;
+
+        var calcDist = function(x, y) {
+            return Math.sqrt(
+                (x - midX) * (x - midX) +
+                (y - midY) * (y - midY)
+            );
+        };
+
+        var points = [
+            {x: 0, y: vph / 2},
+            {x: vpw / 2, y: 0},
+            {x: vpw, y: vph / 2},
+            {x: vpw / 2, y: vph}
+        ];
+
+        var dists = [
+            calcDist(points[0].x, points[0].y),
+            calcDist(points[1].x, points[1].y),
+            calcDist(points[2].x, points[2].y),
+            calcDist(points[3].x, points[3].y),
+        ];
+
+        var minDist = Infinity;
+        var q = -1;
+        for(var i = 0; i < 4; i++) {
+            if(minDist > dists[i]) {
+                minDist = dists[i];
+                q = i;
+            }
+        }
+
+        return (q === 0) ? {
+            x0: 0,
+            x1: 0,
+            y0: y0,
+            y1: y1
+        } : (q === 1) ? {
+            x0: x0,
+            x1: x1,
+            y0: 0,
+            y1: 0
+        } : (q === 2) ? {
+            x0: vpw,
+            x1: vpw,
+            y0: y0,
+            y1: y1
+        } : {
+            x0: x0,
+            x1: x1,
+            y0: vph,
+            y1: vph
+        };
     };
 
     if(!entry) {
@@ -316,7 +366,7 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         if(entryPrev) {
             // if pt to remove:
-            Lib.extendFlat(next, ORIGIN);
+            Lib.extendFlat(next, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
         } else {
             // this happens when maxdepth is set, when leaves must
             // be removed and the rootPt is new (i.e. does not have a 'prev' object)
@@ -327,22 +377,8 @@ function plotOne(gd, cd, element, transitionOpts) {
                     return parent = pt2;
                 }
             });
-            var parentChildren = parent.children;
-            var ci;
-            parentChildren.forEach(function(pt2, i) {
-                if(helpers.getPtId(pt2) === id) {
-                    return ci = i;
-                }
-            });
-            var n = parentChildren.length;
-            var interpX = d3.interpolate(parent.x0, parent.x1);
-            var interpY = d3.interpolate(parent.y0, parent.y1);
-            next = {
-                x0: interpX(ci / n),
-                x1: interpX((ci + 1) / n),
-                y0: interpY(ci / n),
-                y1: interpY((ci + 1) / n)
-            };
+
+            next = getOrigin(parent.x0, parent.x1, parent.y0, parent.y1);
         }
 
         return d3.interpolate(prev, next);
@@ -351,7 +387,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {};
-        Lib.extendFlat(prev, ORIGIN);
+        Lib.extendFlat(prev, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
 
         var next = {
             x0: pt.x0,
@@ -386,8 +422,8 @@ function plotOne(gd, cd, element, transitionOpts) {
                 rotate: 0,
                 textX: 0,
                 textY: 0,
-                targetX: getX(0),
-                targetY: getY(0)
+                targetX: getX((pt.x0 + pt.x1) / 2),
+                targetY: getY((pt.x0 + pt.y1) / 2)
             }
         });
 
@@ -465,7 +501,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
         }
 
-        return Lib.extendFlat({}, ORIGIN);
+        return Lib.extendFlat({}, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
     }
 }
 
