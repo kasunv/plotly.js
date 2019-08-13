@@ -130,10 +130,14 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         var minDist = Infinity;
         var q = -1;
-        for(var i = 0; i < 4; i++) {
-            if(minDist > dists[i]) {
-                minDist = dists[i];
-                q = i;
+        if(x0 !== 0 || x1 !== vpw ||
+            y0 !== 0 || y1 !== vph
+        ) {
+            for(var i = 0; i < 4; i++) {
+                if(minDist > dists[i]) {
+                    minDist = dists[i];
+                    q = i;
+                }
             }
         }
 
@@ -152,10 +156,15 @@ function plotOne(gd, cd, element, transitionOpts) {
             x1: vpw,
             y0: y0,
             y1: y1
-        } : {
+        } : (q === 3) ? {
             x0: x0,
             x1: x1,
             y0: vph,
+            y1: vph
+        } : {
+            x0: 0,
+            x1: vpw,
+            y0: 0,
             y1: vph
         };
     };
@@ -210,6 +219,46 @@ function plotOne(gd, cd, element, transitionOpts) {
             getY(y)
         ];
     };
+
+    function toMoveInsideSlice(x0, x1, y0, y1, textBB) {
+        var hasFlag = function(f) { return trace.textposition.indexOf(f) !== -1; };
+
+        var anchor =
+            hasFlag('top') ? 'start' :
+            hasFlag('bottom') ? 'end' : 'middle';
+
+        var offsetDir =
+            hasFlag('left') ? 'left' :
+            hasFlag('right') ? 'right' : 'center';
+
+        var offsetPad =
+            hasFlag('left') ? trace.marker.padding.left :
+            hasFlag('right') ? trace.marker.padding.right : 0;
+
+        // position the text relative to the slice
+        var transform = toMoveInsideBar(x0, x1, y0, y1, textBB, {
+            isHorizontal: false,
+            constrained: true,
+            angle: 0,
+            anchor: anchor
+        });
+
+        if(offsetDir !== 'center' && transform.scale >= 1) {
+            var deltaX = (x1 - x0) / 2 - (textBB.right - textBB.left) / 2;
+
+            if(offsetDir === 'left') transform.targetX -= deltaX - offsetPad;
+            else if(offsetDir === 'right') transform.targetX += deltaX - offsetPad;
+        }
+
+        return {
+            scale: transform.scale,
+            rotate: transform.rotate,
+            textX: transform.textX,
+            textY: transform.textY,
+            targetX: getX(transform.targetX),
+            targetY: getY(transform.targetY)
+        };
+    }
 
     // slice path generation fn
     var pathSlice = function(d) {
@@ -304,38 +353,8 @@ function plotOne(gd, cd, element, transitionOpts) {
               helpers.determineInsideTextFont(trace, pt, fullLayout.font))
             .call(svgTextUtils.convertToTspans, gd);
 
-        var hasFlag = function(f) { return trace.textposition.indexOf(f) !== -1; };
-
-        var anchor =
-            hasFlag('top') ? 'start' :
-            hasFlag('bottom') ? 'end' : 'middle';
-
-        var offsetDir =
-            hasFlag('left') ? 'left' :
-            hasFlag('right') ? 'right' : 'center';
-
-        var offsetPad =
-            hasFlag('left') ? trace.marker.padding.left :
-            hasFlag('right') ? trace.marker.padding.right : 0;
-
-        // position the text relative to the slice
-        var textBB = Drawing.bBox(sliceText.node());
-        pt.transform = toMoveInsideBar(pt.x0, pt.x1, pt.y0, pt.y1, textBB, {
-            isHorizontal: false,
-            constrained: true,
-            angle: 0,
-            anchor: anchor
-        });
-
-        if(offsetDir !== 'center' && pt.transform.scale >= 1) {
-            var deltaX = (pt.x1 - pt.x0) / 2 - (textBB.right - textBB.left) / 2;
-
-            if(offsetDir === 'left') pt.transform.targetX -= deltaX - offsetPad;
-            else if(offsetDir === 'right') pt.transformtargetX += deltaX - offsetPad;
-        }
-
-        pt.transform.targetX = getX(pt.transform.targetX);
-        pt.transform.targetY = getY(pt.transform.targetY);
+        pt.textBB = Drawing.bBox(sliceText.node());
+        pt.transform = toMoveInsideSlice(pt.x0, pt.x1, pt.y0, pt.y1, pt.textBB);
 
         var strTransform = function(d) {
             return getTransform({
@@ -359,42 +378,16 @@ function plotOne(gd, cd, element, transitionOpts) {
     });
 
     function makeExitSliceInterpolator(pt) {
-        var id = helpers.getPtId(pt);
-        var prev = prevLookup[id];
-        var entryPrev = prevLookup[helpers.getPtId(entry)];
-        var next = {};
+        var prev = prevLookup[helpers.getPtId(pt)];
 
-        if(entryPrev) {
-            // if pt to remove:
-            Lib.extendFlat(next, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
-        } else {
-            // this happens when maxdepth is set, when leaves must
-            // be removed and the rootPt is new (i.e. does not have a 'prev' object)
-            var parent;
-            var parentId = helpers.getPtId(pt.parent);
-            slices.each(function(pt2) {
-                if(helpers.getPtId(pt2) === parentId) {
-                    return parent = pt2;
-                }
-            });
-
-            next = getOrigin(parent.x0, parent.x1, parent.y0, parent.y1);
-        }
-
-        return d3.interpolate(prev, next);
+        return d3.interpolate(prev, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
     }
 
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
+
         var prev = {};
         Lib.extendFlat(prev, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
-
-        var next = {
-            x0: pt.x0,
-            x1: pt.x1,
-            y0: pt.y0,
-            y1: pt.y1
-        };
 
         if(prev0) {
             // if pt already on graph, this is easy
@@ -409,25 +402,38 @@ function plotOne(gd, cd, element, transitionOpts) {
             }
         }
 
-        return d3.interpolate(prev, next);
+        return d3.interpolate(prev, {
+            x0: pt.x0,
+            x1: pt.x1,
+            y0: pt.y0,
+            y1: pt.y1
+        });
     }
-
 
     function makeUpdateTextInterpolar(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {};
+
+        var origin = getOrigin(pt.x0, pt.x1, pt.y0, pt.y1);
+
         Lib.extendFlat(prev, {
-            transform: {
-                scale: 1,
-                rotate: 0,
-                textX: 0,
-                textY: 0,
-                targetX: getX((pt.x0 + pt.x1) / 2),
-                targetY: getY((pt.x0 + pt.y1) / 2)
-            }
+            transform: toMoveInsideSlice(origin.x0, origin.x1, origin.y0, origin.y1, pt.textBB)
         });
 
-        var next = {
+        if(prev0) {
+            // if pt already on graph, this is easy
+            prev = prev0;
+        } else {
+            // for new pts:
+            if(prevEntry) {
+                // if trace was visible before
+                if(pt.parent) {
+                    Lib.extendFlat(prev, interpFromParent(pt));
+                }
+            }
+        }
+
+        return d3.interpolate(prev, {
             transform: {
                 scale: pt.transform.scale,
                 rotate: pt.transform.rotate,
@@ -436,22 +442,7 @@ function plotOne(gd, cd, element, transitionOpts) {
                 targetX: pt.transform.targetX,
                 targetY: pt.transform.targetY
             }
-        };
-
-        if(prev0) {
-            // if pt already on graph, this is easy
-            prev = prev0;
-        } else {
-            // for new pts:
-            if(prevEntry) {
-                // if trace was visible before
-                if(pt.parent) {
-                    Lib.extendFlat(prev, interpFromParent(pt));
-                }
-            }
-        }
-
-        return d3.interpolate(prev, next);
+        });
     }
 
     function interpFromParent(pt) {
