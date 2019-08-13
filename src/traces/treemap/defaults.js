@@ -60,12 +60,12 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         moduleHasUnselected: false,
         moduleHasConstrain: false,
         moduleHasCliponaxis: false,
-        moduleHasTextangle: true,
-        moduleHasInsideanchor: true
+        moduleHasTextangle: false,
+        moduleHasInsideanchor: false
     });
+    coerce('textposition');
 
     var headerSize = traceOut.textfont.size * 1.6;
-
     coerce('marker.padding.top', headerSize);
     coerce('marker.padding.left', headerSize / 4);
     coerce('marker.padding.right', headerSize / 4);

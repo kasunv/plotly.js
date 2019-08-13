@@ -14,7 +14,6 @@ var hovertemplateAttrs = require('../../components/fx/hovertemplate_attributes')
 var colorScaleAttrs = require('../../components/colorscale/attributes');
 var domainAttrs = require('../../plots/domain').attributes;
 var pieAttrs = require('../pie/attributes');
-var barAttrs = require('../bar/attributes');
 
 var extendFlat = require('../../lib/extend').extendFlat;
 
@@ -258,8 +257,20 @@ module.exports = {
     insidetextfont: pieAttrs.insidetextfont,
     outsidetextfont: pieAttrs.outsidetextfont,
 
-    textangle: extendFlat({}, barAttrs.textangle, {dflt: 0}),
-    insidetextanchor: extendFlat({}, barAttrs.insidetextanchor, {dflt: 'start'}),
+    textposition: {
+        valType: 'enumerated',
+        values: [
+            'top left', 'top center', 'top right',
+            'middle left', 'middle center', 'middle right',
+            'bottom left', 'bottom center', 'bottom right'
+        ],
+        dflt: 'top left',
+        role: 'style',
+        editType: 'plot',
+        description: [
+            'Sets the positions of the `text` elements.'
+        ].join(' ')
+    },
 
     domain: domainAttrs({name: 'treemap', trace: true, editType: 'calc'})
 };

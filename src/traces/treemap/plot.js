@@ -80,13 +80,6 @@ module.exports = function(gd, cdmodule, transitionOpts, makeOnCompleteCallback) 
     }
 };
 
-var ORIGIN = {
-    x0: 0,
-    x1: 0,
-    y0: 0,
-    y1: 0
-};
-
 function plotOne(gd, cd, element, transitionOpts) {
     var fullLayout = gd._fullLayout;
     // We could optimize hasTransition per trace,
@@ -109,6 +102,13 @@ function plotOne(gd, cd, element, transitionOpts) {
 
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
+
+    var ORIGIN = {
+        x0: 0,
+        x1: 0,
+        y0: 0,
+        y1: 0
+    };
 
     if(!entry) {
         return slices.remove();
@@ -254,14 +254,35 @@ function plotOne(gd, cd, element, transitionOpts) {
               helpers.determineInsideTextFont(trace, pt, fullLayout.font))
             .call(svgTextUtils.convertToTspans, gd);
 
+        var hasFlag = function(f) { return trace.textposition.indexOf(f) !== -1; };
+
+        var anchor =
+            hasFlag('top') ? 'start' :
+            hasFlag('bottom') ? 'end' : 'middle';
+
+        var offsetDir =
+            hasFlag('left') ? 'left' :
+            hasFlag('right') ? 'right' : 'center';
+
+        var offsetPad =
+            hasFlag('left') ? trace.marker.padding.left :
+            hasFlag('right') ? trace.marker.padding.right : 0;
+
         // position the text relative to the slice
         var textBB = Drawing.bBox(sliceText.node());
         pt.transform = toMoveInsideBar(pt.x0, pt.x1, pt.y0, pt.y1, textBB, {
             isHorizontal: false,
             constrained: true,
-            angle: trace.textangle,
-            anchor: trace.insidetextanchor
+            angle: 0,
+            anchor: anchor
         });
+
+        if(offsetDir !== 'center' && pt.transform.scale >= 1) {
+            var deltaX = (pt.x1 - pt.x0) / 2 - (textBB.right - textBB.left) / 2;
+
+            if(offsetDir === 'left') pt.transform.targetX -= deltaX - offsetPad;
+            else if(offsetDir === 'right') pt.transformtargetX += deltaX - offsetPad;
+        }
 
         pt.transform.targetX = getX(pt.transform.targetX);
         pt.transform.targetY = getY(pt.transform.targetY);
