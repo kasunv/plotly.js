@@ -104,6 +104,16 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
     var getOrigin = function(x0, x1, y0, y1) {
+        if(x0 === 0 && x1 === vpw && y0 === 0 && y1 === vph) {
+            // keep whole in the background
+            return {
+                x0: 0,
+                x1: vpw,
+                y0: 0,
+                y1: vph
+            };
+        }
+
         var midX = (x0 + x1) / 2;
         var midY = (y0 + y1) / 2;
 
@@ -130,14 +140,10 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         var minDist = Infinity;
         var q = -1;
-        if(x0 !== 0 || x1 !== vpw ||
-            y0 !== 0 || y1 !== vph
-        ) {
-            for(var i = 0; i < 4; i++) {
-                if(minDist > dists[i]) {
-                    minDist = dists[i];
-                    q = i;
-                }
+        for(var i = 0; i < 4; i++) {
+            if(minDist > dists[i]) {
+                minDist = dists[i];
+                q = i;
             }
         }
 
@@ -156,15 +162,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             x1: vpw,
             y0: y0,
             y1: y1
-        } : (q === 3) ? {
+        } : {
             x0: x0,
             x1: x1,
             y0: vph,
-            y1: vph
-        } : {
-            x0: 0,
-            x1: vpw,
-            y0: 0,
             y1: vph
         };
     };
