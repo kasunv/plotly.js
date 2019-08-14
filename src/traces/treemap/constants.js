@@ -10,5 +10,5 @@
 
 module.exports = {
     CLICK_TRANSITION_TIME: 750,
-    CLICK_TRANSITION_EASING: 'linear'
+    CLICK_TRANSITION_EASING: 'cubic'
 };
