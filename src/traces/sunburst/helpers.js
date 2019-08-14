@@ -80,26 +80,31 @@ exports.setSliceCursor = function(sliceTop, gd, opts) {
     setCursor(sliceTop, (isTransitioning || exports.isLeaf(pt) || exports.isHierachyRoot(pt)) ? null : 'pointer');
 };
 
+exports.getInsideTextFontKey = function(keyStr, trace, pt, layoutFont) {
+    var ptNumber = pt.data.data.i;
+
+    return (
+        Lib.castOption(trace, ptNumber, 'insidetextfont.' + keyStr) ||
+        Lib.castOption(trace, ptNumber, 'textfont.' + keyStr) ||
+        layoutFont.size
+    );
+};
+
+exports.getOutsideTextFontKey = function(keyStr, trace, pt, layoutFont) {
+    var ptNumber = pt.data.data.i;
+
+    return (
+        Lib.castOption(trace, ptNumber, 'outsidetextfont.' + keyStr) ||
+        Lib.castOption(trace, ptNumber, 'textfont.' + keyStr) ||
+        layoutFont.size
+    );
+};
+
 exports.determineOutsideTextFont = function(trace, pt, layoutFont) {
-    var cdi = pt.data.data;
-    var ptNumber = cdi.i;
-
-    var color = Lib.castOption(trace, ptNumber, 'outsidetextfont.color') ||
-        Lib.castOption(trace, ptNumber, 'textfont.color') ||
-        layoutFont.color;
-
-    var family = Lib.castOption(trace, ptNumber, 'outsidetextfont.family') ||
-        Lib.castOption(trace, ptNumber, 'textfont.family') ||
-        layoutFont.family;
-
-    var size = Lib.castOption(trace, ptNumber, 'outsidetextfont.size') ||
-        Lib.castOption(trace, ptNumber, 'textfont.size') ||
-        layoutFont.size;
-
     return {
-        color: color,
-        family: family,
-        size: size
+        color: exports.getOutsideTextFontKey('color', trace, pt, layoutFont),
+        family: exports.getOutsideTextFontKey('family', trace, pt, layoutFont),
+        size: exports.getOutsideTextFontKey('size', trace, pt, layoutFont)
     };
 };
 
@@ -116,17 +121,9 @@ exports.determineInsideTextFont = function(trace, pt, layoutFont) {
         customColor = Lib.castOption(trace._input, ptNumber, 'textfont.color');
     }
 
-    var family = Lib.castOption(trace, ptNumber, 'insidetextfont.family') ||
-        Lib.castOption(trace, ptNumber, 'textfont.family') ||
-        layoutFont.family;
-
-    var size = Lib.castOption(trace, ptNumber, 'insidetextfont.size') ||
-        Lib.castOption(trace, ptNumber, 'textfont.size') ||
-        layoutFont.size;
-
     return {
         color: customColor || Color.contrast(cdi.color),
-        family: family,
-        size: size
+        family: exports.getInsideTextFontKey('family', trace, pt, layoutFont),
+        size: exports.getInsideTextFontKey('size', trace, pt, layoutFont)
     };
 };

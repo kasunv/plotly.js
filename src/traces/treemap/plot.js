@@ -387,16 +387,26 @@ function plotOne(gd, cd, element, transitionOpts) {
             s.attr('data-notex', 1);
         });
 
+        var isOutsideText = (helpers.isHierachyRoot(pt) && !trace._hasColorscale);
+
         sliceText.text(formatSliceLabel(pt, trace, fullLayout))
             .classed('slicetext', true)
             .attr('text-anchor', 'middle')
-            .call(Drawing.font, (helpers.isHierachyRoot(pt) && !trace._hasColorscale) ?
-              helpers.determineOutsideTextFont(trace, pt, fullLayout.font) :
-              helpers.determineInsideTextFont(trace, pt, fullLayout.font))
+            .call(Drawing.font, isOutsideText ?
+                helpers.determineOutsideTextFont(trace, pt, fullLayout.font) :
+                helpers.determineInsideTextFont(trace, pt, fullLayout.font))
             .call(svgTextUtils.convertToTspans, gd);
 
         pt.textBB = Drawing.bBox(sliceText.node());
         pt.transform = toMoveInsideSlice(pt.x0, pt.x1, pt.y0, pt.y1, pt.textBB);
+
+        if(isOutsideText) {
+            // consider in/out diff font sizes
+            pt.transform.targetY -= (
+                helpers.getOutsideTextFontKey('size', trace, pt, fullLayout.font) -
+                helpers.getInsideTextFontKey('size', trace, pt, fullLayout.font)
+            );
+        }
 
         var strTransform = function(d) {
             return getTransform({
