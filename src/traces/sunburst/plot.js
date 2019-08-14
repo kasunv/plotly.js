@@ -600,7 +600,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
         });
 
         // 'regular' click event when sunburstclick is disabled or when
-        // clikcin on leaves or the hierarchy root
+        // clicking on leaves or the hierarchy root
         if(clickVal === false || helpers.isLeaf(pt) || helpers.isHierachyRoot(pt)) {
             if(fullLayoutNow.hovermode) {
                 gd._hoverdata = [helpers.makeEventData(pt, traceNow)];

@@ -103,26 +103,100 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
-    var getOrigin = function(ref, pt) {
-        var x0 = ref ? ref.x0 : 0;
-        var x1 = ref ? ref.x1 : vpw;
-        var y0 = ref ? ref.y0 : 0;
-        var y1 = ref ? ref.y1 : vph;
+    var viewportX = function(x) { return x + cx - vpw / 2; };
+    var viewportY = function(y) { return y + cy - vph / 2; };
 
-        var result = {
-            x0: Math.max(x0, pt.x0),
-            x1: Math.min(x1, pt.x1),
-            y0: Math.max(y0, pt.y0),
-            y1: Math.min(y1, pt.y1)
+    var getOrigin = function(pt) {
+        var rect = trace._rect || {
+            x0: 0,
+            x1: vpw,
+            y0: 0,
+            y1: vph
+        };
+        var isInsideRect = function(point) {
+            return !(
+                point.x < rect.x0 ||
+                point.x > rect.x1 ||
+                point.y < rect.y0 ||
+                point.y > rect.y1
+            );
         };
 
-        if(pt.x0 <= x0 && pt.x1 <= x1) result.x0 = result.x1 = 0;
-        else if(pt.x0 >= x0 && pt.x1 >= x1) result.x0 = result.x1 = vpw;
+        var x0 = pt.x0;
+        var x1 = pt.x1;
+        var y0 = pt.y0;
+        var y1 = pt.y1;
 
-        if(pt.y0 <= y0 && pt.y1 <= y1) result.y0 = result.y1 = 0;
-        else if(pt.y0 >= y0 && pt.y1 >= y1) result.y0 = result.y1 = vph;
+        var midX = (x0 + x1) / 2;
+        var midY = (y0 + y1) / 2;
+        var calcDist = function(x, y) {
+            return Math.sqrt(
+                Math.pow(x - midX, 2) +
+                Math.pow(y - midY, 2)
+            );
+        };
 
-        return result;
+        var edgePoints = [
+            {id: 0, x: 0, y: vph / 2},
+            {id: 1, x: vpw / 2, y: 0},
+            {id: 2, x: vpw, y: vph / 2},
+            {id: 3, x: vpw / 2, y: vph}
+        ];
+
+        var i;
+        for(i = edgePoints.length - 1; i > -1; i--) {
+            if(isInsideRect(edgePoints[i])) {
+                edgePoints.pop();
+            }
+        }
+
+        var dists = [];
+        for(i = 0; i < edgePoints.length; i++) {
+            dists.push(calcDist(
+                edgePoints[i].x,
+                edgePoints[i].y
+            ));
+        }
+
+        var minDist = Infinity;
+        var q = -1;
+        if(x0 !== 0 || x1 !== vpw ||
+            y0 !== 0 || y1 !== vph
+        ) {
+            for(i = 0; i < edgePoints.length; i++) {
+                if(minDist > dists[i]) {
+                    minDist = dists[i];
+                    q = edgePoints[i].id;
+                }
+            }
+        }
+
+        return (q === 0) ? {
+            x0: 0,
+            x1: 0,
+            y0: y0,
+            y1: y1
+        } : (q === 1) ? {
+            x0: x0,
+            x1: x1,
+            y0: 0,
+            y1: 0
+        } : (q === 2) ? {
+            x0: vpw,
+            x1: vpw,
+            y0: y0,
+            y1: y1
+        } : (q === 3) ? {
+            x0: x0,
+            x1: x1,
+            y0: vph,
+            y1: vph
+        } : {
+            x0: x0, // 0,
+            x1: x1, // vpw,
+            y0: y0, // 0,
+            y1: y1 // vph
+        };
     };
 
     if(!entry) {
@@ -166,16 +240,6 @@ function plotOne(gd, cd, element, transitionOpts) {
     // filter out slices that won't show up on graph
     sliceData = sliceData.filter(function(pt) { return pt.depth <= maxDepth; });
 
-    var getX = function(x) { return x + cx - vpw / 2; };
-    var getY = function(y) { return y + cy - vph / 2; };
-
-    var toPoint = function(x, y) {
-        return [
-            getX(x),
-            getY(y)
-        ];
-    };
-
     function toMoveInsideSlice(x0, x1, y0, y1, textBB) {
         var hasFlag = function(f) { return trace.textposition.indexOf(f) !== -1; };
 
@@ -211,17 +275,17 @@ function plotOne(gd, cd, element, transitionOpts) {
             rotate: transform.rotate,
             textX: transform.textX,
             textY: transform.textY,
-            targetX: getX(transform.targetX),
-            targetY: getY(transform.targetY)
+            targetX: viewportX(transform.targetX),
+            targetY: viewportY(transform.targetY)
         };
     }
 
     // slice path generation fn
     var pathSlice = function(d) {
-        var _x0 = getX(d.x0);
-        var _x1 = getX(d.x1);
-        var _y0 = getY(d.y0);
-        var _y1 = getY(d.y1);
+        var _x0 = viewportX(d.x0);
+        var _x1 = viewportX(d.x1);
+        var _y0 = viewportY(d.y0);
+        var _y1 = viewportY(d.y1);
 
         return (
            'M' + _x0 + ',' + _y0 +
@@ -274,10 +338,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             s.style('pointer-events', 'all');
         });
 
-        pt.midpos = toPoint(
-            (pt.x0 + pt.x1) / 2,
-            (pt.y0 + pt.y1) / 2
-        );
+        pt.midpos = [
+            viewportX((pt.x0 + pt.x1) / 2),
+            viewportY((pt.y0 + pt.y1) / 2)
+        ];
 
         if(hasTransition) {
             slicePath.transition().attrTween('d', function(pt2) {
@@ -336,14 +400,14 @@ function plotOne(gd, cd, element, transitionOpts) {
     function makeExitSliceInterpolator(pt) {
         var prev = prevLookup[helpers.getPtId(pt)];
 
-        return d3.interpolate(prev, getOrigin(prev, pt));
+        return d3.interpolate(prev, getOrigin(pt));
     }
 
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
 
         var prev = {};
-        Lib.extendFlat(prev, getOrigin(prev0, pt));
+        Lib.extendFlat(prev, getOrigin(pt));
 
         if(prev0) {
             // if pt already on graph, this is easy
@@ -370,7 +434,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {};
 
-        var origin = getOrigin(prev0, pt);
+        var origin = getOrigin(pt);
 
         Lib.extendFlat(prev, {
             transform: toMoveInsideSlice(origin.x0, origin.x1, origin.y0, origin.y1, pt.textBB)
@@ -448,7 +512,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
         }
 
-        return Lib.extendFlat({}, getOrigin(parent, pt));
+        return Lib.extendFlat({}, getOrigin(pt));
     }
 }
 
@@ -595,7 +659,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
         });
 
         // 'regular' click event when treemapclick is disabled or when
-        // clikcin on leaves or the hierarchy root
+        // clicking on leaves or the hierarchy root
         if(
             clickVal === false ||
             helpers.isHierachyRoot(pt)
@@ -613,6 +677,13 @@ function attachFxHandlers(sliceTop, gd, cd) {
         // skip during transitions, to avoid potential bugs
         // we could remove this check later
         if(gd._transitioning) return;
+
+        traceNow._rect = {
+            x0: pt.x0,
+            x1: pt.x1,
+            y0: pt.y0,
+            y1: pt.y1,
+        };
 
         // store 'old' level in guiEdit stash, so that subsequent Plotly.react
         // calls with the same uirevision can start from the same entry
