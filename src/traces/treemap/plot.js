@@ -103,70 +103,17 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
-    var getOrigin = function(x0, x1, y0, y1) {
-        if(x0 === 0 && x1 === vpw && y0 === 0 && y1 === vph) {
-            // keep whole in the background
-            return {
-                x0: 0,
-                x1: vpw,
-                y0: 0,
-                y1: vph
-            };
-        }
+    var getOrigin = function(ref, pt) {
+        var x0 = ref ? ref.x0 : 0;
+        var x1 = ref ? ref.x1 : vpw;
+        var y0 = ref ? ref.y0 : 0;
+        var y1 = ref ? ref.y1 : vph;
 
-        var midX = (x0 + x1) / 2;
-        var midY = (y0 + y1) / 2;
-
-        var calcDist = function(x, y) {
-            return Math.sqrt(
-                (x - midX) * (x - midX) +
-                (y - midY) * (y - midY)
-            );
-        };
-
-        var points = [
-            {x: 0, y: vph / 2},
-            {x: vpw / 2, y: 0},
-            {x: vpw, y: vph / 2},
-            {x: vpw / 2, y: vph}
-        ];
-
-        var dists = [
-            calcDist(points[0].x, points[0].y),
-            calcDist(points[1].x, points[1].y),
-            calcDist(points[2].x, points[2].y),
-            calcDist(points[3].x, points[3].y),
-        ];
-
-        var minDist = Infinity;
-        var q = -1;
-        for(var i = 0; i < 4; i++) {
-            if(minDist > dists[i]) {
-                minDist = dists[i];
-                q = i;
-            }
-        }
-
-        return (q === 0) ? {
-            x0: 0,
-            x1: 0,
-            y0: y0,
-            y1: y1
-        } : (q === 1) ? {
-            x0: x0,
-            x1: x1,
-            y0: 0,
-            y1: 0
-        } : (q === 2) ? {
-            x0: vpw,
-            x1: vpw,
-            y0: y0,
-            y1: y1
-        } : {
-            x0: x0,
-            x1: x1,
-            y0: vph,
-            y1: vph
+        return {
+            x0: Math.max(x0, pt.x0),
+            x1: Math.min(x1, pt.x1),
+            y0: Math.max(y0, pt.y0),
+            y1: Math.min(y1, pt.y1)
         };
     };
 
@@ -381,14 +328,14 @@ function plotOne(gd, cd, element, transitionOpts) {
     function makeExitSliceInterpolator(pt) {
         var prev = prevLookup[helpers.getPtId(pt)];
 
-        return d3.interpolate(prev, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
+        return d3.interpolate(prev, getOrigin(prev, pt));
     }
 
     function makeUpdateSliceIntepolator(pt) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
 
         var prev = {};
-        Lib.extendFlat(prev, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
+        Lib.extendFlat(prev, getOrigin(prev0, pt));
 
         if(prev0) {
             // if pt already on graph, this is easy
@@ -415,7 +362,7 @@ function plotOne(gd, cd, element, transitionOpts) {
         var prev0 = prevLookup[helpers.getPtId(pt)];
         var prev = {};
 
-        var origin = getOrigin(pt.x0, pt.x1, pt.y0, pt.y1);
+        var origin = getOrigin(prev0, pt);
 
         Lib.extendFlat(prev, {
             transform: toMoveInsideSlice(origin.x0, origin.x1, origin.y0, origin.y1, pt.textBB)
@@ -493,7 +440,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             };
         }
 
-        return Lib.extendFlat({}, getOrigin(pt.x0, pt.x1, pt.y0, pt.y1));
+        return Lib.extendFlat({}, getOrigin(parent, pt));
     }
 }
 
