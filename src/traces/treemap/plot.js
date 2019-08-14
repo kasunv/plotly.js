@@ -109,12 +109,20 @@ function plotOne(gd, cd, element, transitionOpts) {
         var y0 = ref ? ref.y0 : 0;
         var y1 = ref ? ref.y1 : vph;
 
-        return {
+        var result = {
             x0: Math.max(x0, pt.x0),
             x1: Math.min(x1, pt.x1),
             y0: Math.max(y0, pt.y0),
             y1: Math.min(y1, pt.y1)
         };
+
+        if(pt.x0 <= x0 && pt.x1 <= x1) result.x0 = result.x1 = 0;
+        else if(pt.x0 >= x0 && pt.x1 >= x1) result.x0 = result.x1 = vpw;
+
+        if(pt.y0 <= y0 && pt.y1 <= y1) result.y0 = result.y1 = 0;
+        else if(pt.y0 >= y0 && pt.y1 >= y1) result.y0 = result.y1 = vph;
+
+        return result;
     };
 
     if(!entry) {
