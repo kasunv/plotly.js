@@ -107,25 +107,45 @@ function plotOne(gd, cd, element, transitionOpts) {
     var viewportY = function(y) { return y + cy - vph / 2; };
 
     var getOrigin = function(pt) {
+        var x0 = pt.x0;
+        var x1 = pt.x1;
+        var y0 = pt.y0;
+        var y1 = pt.y1;
+
         var rect = trace._rect || {
             x0: 0,
             x1: vpw,
             y0: 0,
             y1: vph
         };
-        var isInsideRect = function(point) {
+
+        var isLeftOfRect = function() {
             return !(
-                point.x < rect.x0 ||
-                point.x > rect.x1 ||
-                point.y < rect.y0 ||
-                point.y > rect.y1
+                rect.x0 < x0 ||
+                rect.x0 < x1
             );
         };
 
-        var x0 = pt.x0;
-        var x1 = pt.x1;
-        var y0 = pt.y0;
-        var y1 = pt.y1;
+        var isRightOfRect = function() {
+            return !(
+                rect.x1 > x0 ||
+                rect.x1 > x1
+            );
+        };
+
+        var isBottomOfRect = function() {
+            return !(
+                rect.y0 < y0 ||
+                rect.y0 < y1
+            );
+        };
+
+        var isTopOfRect = function() {
+            return !(
+                rect.y1 > y0 ||
+                rect.y1 > y1
+            );
+        };
 
         var midX = (x0 + x1) / 2;
         var midY = (y0 + y1) / 2;
@@ -136,20 +156,22 @@ function plotOne(gd, cd, element, transitionOpts) {
             );
         };
 
-        var edgePoints = [
-            {id: 0, x: 0, y: vph / 2},
-            {id: 1, x: vpw / 2, y: 0},
-            {id: 2, x: vpw, y: vph / 2},
-            {id: 3, x: vpw / 2, y: vph}
-        ];
+        var edgePoints = [];
+        if(isLeftOfRect()) edgePoints.push({id: 0, x: 0, y: vph / 2});
+        if(isBottomOfRect()) edgePoints.push({id: 1, x: vpw / 2, y: 0});
+        if(isRightOfRect()) edgePoints.push({id: 2, x: vpw, y: vph / 2});
+        if(isTopOfRect()) edgePoints.push({id: 3, x: vpw / 2, y: vph});
 
-        var i;
-        for(i = edgePoints.length - 1; i > -1; i--) {
-            if(isInsideRect(edgePoints[i])) {
-                edgePoints.pop();
-            }
+        if(!edgePoints.length) {
+            return {
+                x0: (x0 < vpw / 2) ? 0 : vpw,
+                x1: (x1 < vpw / 2) ? 0 : vpw,
+                y0: (y0 < vph / 2) ? 0 : vph,
+                y1: (y1 < vph / 2) ? 0 : vph
+            };
         }
 
+        var i;
         var dists = [];
         for(i = 0; i < edgePoints.length; i++) {
             dists.push(calcDist(
@@ -192,10 +214,10 @@ function plotOne(gd, cd, element, transitionOpts) {
             y0: vph,
             y1: vph
         } : {
-            x0: x0, // 0,
-            x1: x1, // vpw,
-            y0: y0, // 0,
-            y1: y1 // vph
+            x0: x0,
+            x1: x1,
+            y0: y0,
+            y1: y1
         };
     };
 
