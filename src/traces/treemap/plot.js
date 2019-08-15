@@ -225,8 +225,6 @@ function plotOne(gd, cd, element, transitionOpts) {
         return slices.remove();
     }
 
-    // previous root 'pt' (can be empty)
-    var prevEntry = null;
     // stash of 'previous' position data used by tweening functions
     var prevLookup = {};
 
@@ -240,10 +238,6 @@ function plotOne(gd, cd, element, transitionOpts) {
                 y1: pt.y1,
                 transform: pt.transform
             };
-
-            if(!prevEntry && helpers.isEntry(pt)) {
-                prevEntry = pt;
-            }
         });
     }
 
@@ -446,11 +440,8 @@ function plotOne(gd, cd, element, transitionOpts) {
             prev = prev0;
         } else {
             // for new pts:
-            if(prevEntry) {
-                // if trace was visible before
-                if(pt.parent) {
-                    Lib.extendFlat(prev, interpFromParent(pt));
-                }
+            if(pt.parent) {
+                Lib.extendFlat(prev, interpFromParent(pt));
             }
         }
 
@@ -477,11 +468,8 @@ function plotOne(gd, cd, element, transitionOpts) {
             prev = prev0;
         } else {
             // for new pts:
-            if(prevEntry) {
-                // if trace was visible before
-                if(pt.parent) {
-                    Lib.extendFlat(prev, interpFromParent(pt));
-                }
+            if(pt.parent) {
+                Lib.extendFlat(prev, interpFromParent(pt));
             }
         }
 
