@@ -164,10 +164,10 @@ function plotOne(gd, cd, element, transitionOpts) {
 
         if(!edgePoints.length) {
             return {
-                x0: (x0 < vpw / 2) ? 0 : vpw,
-                x1: (x1 < vpw / 2) ? 0 : vpw,
-                y0: (y0 < vph / 2) ? 0 : vph,
-                y1: (y1 < vph / 2) ? 0 : vph
+                x0: (midX <= vpw / 2) ? 0 : vpw,
+                x1: (midX < vpw / 2) ? 0 : vpw,
+                y0: (midY <= vph / 2) ? 0 : vph,
+                y1: (midY < vph / 2) ? 0 : vph
             };
         }
 
