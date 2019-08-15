@@ -26,16 +26,27 @@ function style(gd) {
     });
 }
 
-function styleOne(s, pt, trace) {
+function styleOne(s, pt, trace, hovered) {
     var cdi = pt.data.data;
     var ptNumber = cdi.i;
-    var lineColor = Lib.castOption(trace, ptNumber, 'marker.line.color') || Color.defaultLine;
-    var lineWidth = Lib.castOption(trace, ptNumber, 'marker.line.width') || 0;
+    var lineColor;
+    var lineWidth;
+    var opacity;
+
+    if(hovered) {
+        lineColor = trace.hovered.marker.line.color;
+        lineWidth = trace.hovered.marker.line.width;
+        opacity = trace.hovered.marker.opacity;
+    } else {
+        lineColor = Lib.castOption(trace, ptNumber, 'marker.line.color') || Color.defaultLine;
+        lineWidth = Lib.castOption(trace, ptNumber, 'marker.line.width') || 0;
+        opacity = trace.marker.opacity;
+    }
 
     s.style('stroke-width', lineWidth)
         .call(Color.fill, cdi.color)
         .call(Color.stroke, lineColor)
-        .style('opacity', trace.marker.opacity);
+        .style('opacity', opacity);
 }
 
 module.exports = {

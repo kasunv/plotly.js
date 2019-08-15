@@ -354,8 +354,8 @@ function plotOne(gd, cd, element, transitionOpts) {
             s.style('pointer-events', 'all');
         });
 
-        pt.midpos = [
-            viewportX((pt.x0 + pt.x1) / 2),
+        pt._right = [
+            viewportX(pt.x1),
             viewportY((pt.y0 + pt.y1) / 2)
         ];
 
@@ -583,8 +583,8 @@ function attachFxHandlers(sliceTop, gd, cd) {
         var separators = fullLayoutNow.separators;
 
         if(hovertemplate || (hoverinfo && hoverinfo !== 'none' && hoverinfo !== 'skip')) {
-            var hoverCenterX = pt.midpos[0];
-            var hoverCenterY = pt.midpos[1];
+            var hoverCenterX = pt._right[0];
+            var hoverCenterY = pt._right[1];
             var hoverPt = {};
             var parts = [];
             var thisText = [];
@@ -615,7 +615,7 @@ function attachFxHandlers(sliceTop, gd, cd) {
                 trace: traceNow,
                 x: hoverCenterX,
                 y: hoverCenterY,
-                idealAlign: pt.midpos[0] < 0 ? 'left' : 'right',
+                idealAlign: hoverCenterX < 0 ? 'left' : 'right',
                 text: thisText.join('<br>'),
                 name: (hovertemplate || hasFlag('name')) ? traceNow.name : undefined,
                 color: _cast('hoverlabel.bgcolor') || cdi.color,
@@ -642,6 +642,11 @@ function attachFxHandlers(sliceTop, gd, cd) {
             points: [helpers.makeEventData(pt, traceNow)],
             event: d3.event
         });
+
+        var slices = sliceTop.selectAll('path.surface');
+        slices.each(function() {
+            slices.call(styleOne, pt, traceNow, true);
+        });
     });
 
     sliceTop.on('mouseout', function(evt) {
@@ -662,6 +667,11 @@ function attachFxHandlers(sliceTop, gd, cd) {
             Fx.loneUnhover(fullLayoutNow._hoverlayer.node());
             trace._hasHoverLabel = false;
         }
+
+        var slices = sliceTop.selectAll('path.surface');
+        slices.each(function() {
+            slices.call(styleOne, pt, traceNow, false);
+        });
     });
 
     sliceTop.on('click', function(pt) {

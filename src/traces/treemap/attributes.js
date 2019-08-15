@@ -109,11 +109,6 @@ module.exports = {
             ].join(' ')
         },
 
-        // colorinheritance: {
-        //     valType: 'enumerated',
-        //     values: ['per-branch', 'per-label', false]
-        // },
-
         opacity: {
             valType: 'number',
             editType: 'plot',
@@ -121,7 +116,7 @@ module.exports = {
             min: 0,
             max: 1,
             description: [
-                'Sets the opacity for the overlays. With colorscale',
+                'Sets the opacity for the sectors. With colorscale',
                 'it is defaulted to 1; otherwise it is defaulted to 0.5'
             ].join(' ')
         },
@@ -131,7 +126,7 @@ module.exports = {
                 valType: 'number',
                 role: 'style',
                 min: 0,
-                dflt: 0,
+                dflt: 1,
                 editType: 'plot',
                 description: [
                     'Sets the inner padding (in px).'
@@ -199,6 +194,39 @@ module.exports = {
             anim: false // TODO: set to anim: true?
         })
     ),
+
+    hovered: {
+        marker: {
+            opacity: {
+                valType: 'number',
+                editType: 'style',
+                role: 'style',
+                min: 0,
+                max: 1,
+                description: [
+                    'Sets the opacity for the sectors when hovered. With colorscale',
+                    'it is defaulted to 1; otherwise it is defaulted to 0.75'
+                ].join(' ')
+            },
+            line: {
+                color: extendFlat({}, pieAttrs.marker.line.color, {
+                    dflt: 'auto',
+                    description: [
+                        'Sets the color of the line enclosing each sector when hovered'
+                    ].join(' ')
+                }),
+                width: extendFlat({}, pieAttrs.marker.line.width, {
+                    dflt: 'auto',
+                    description: [
+                        'Sets the width (in px) of the line enclosing each sector when hovered.'
+                    ].join(' ')
+                }),
+                editType: 'style'
+            },
+            editType: 'style'
+        },
+        editType: 'style'
+    },
 
     text: pieAttrs.text,
     textinfo: {

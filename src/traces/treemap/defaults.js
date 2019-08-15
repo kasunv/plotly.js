@@ -10,6 +10,7 @@
 
 var Lib = require('../../lib');
 var attributes = require('./attributes');
+var Color = require('../../components/color');
 var hasColorscale = require('../../components/colorscale/helpers').hasColorscale;
 var colorscaleDefaults = require('../../components/colorscale/defaults');
 var handleDomainDefaults = require('../../plots/domain').defaults;
@@ -36,17 +37,6 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
 
     coerce('tiling');
 
-    var lineWidth = coerce('marker.line.width');
-    if(lineWidth) coerce('marker.line.color', layout.paper_bgcolor);
-
-    coerce('marker.colors');
-    var withColorscale = hasColorscale(traceIn, 'marker');
-    if(withColorscale) {
-        colorscaleDefaults(traceIn, traceOut, layout, coerce, {prefix: 'marker.', cLetter: 'c'});
-    }
-
-    coerce('marker.opacity', withColorscale ? 1 : 0.5);
-
     var text = coerce('text');
     /* coerce('texttemplate');
     if(!traceOut.texttemplate) */ coerce('textinfo', Array.isArray(text) ? 'text+label' : 'label');
@@ -65,12 +55,26 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     });
     coerce('textposition');
 
+    var lineWidth = coerce('marker.line.width');
+    if(lineWidth) coerce('marker.line.color', layout.paper_bgcolor);
+
+    coerce('marker.colors');
+    var withColorscale = hasColorscale(traceIn, 'marker');
+
     var headerSize = traceOut.textfont.size * 1.6;
     coerce('marker.padding.top', headerSize);
     coerce('marker.padding.left', headerSize / 4);
     coerce('marker.padding.right', headerSize / 4);
     coerce('marker.padding.bottom', headerSize / 4);
-    coerce('marker.padding.inside');
+    var paddingInside = coerce('marker.padding.inside');
+
+    if(withColorscale) {
+        colorscaleDefaults(traceIn, traceOut, layout, coerce, {prefix: 'marker.', cLetter: 'c'});
+    }
+    coerce('marker.opacity', withColorscale ? 1 : 0.5);
+    coerce('hovered.marker.opacity', withColorscale ? 1 : 0.75);
+    coerce('hovered.marker.line.width', paddingInside < 2 ? paddingInside : 2);
+    coerce('hovered.marker.line.color', Color.contrast(layout.paper_bgcolor));
 
     handleDomainDefaults(traceOut, layout, coerce);
 
