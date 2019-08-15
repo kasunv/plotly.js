@@ -71,8 +71,8 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     if(withColorscale) {
         colorscaleDefaults(traceIn, traceOut, layout, coerce, {prefix: 'marker.', cLetter: 'c'});
     }
-    coerce('marker.opacity', withColorscale ? 1 : 0.5);
-    coerce('hovered.marker.opacity', withColorscale ? 1 : 0.75);
+    var markerOpacity = coerce('marker.opacity', withColorscale ? 1 : 0.5);
+    coerce('hovered.marker.opacity', withColorscale ? 1 : 0.5 + markerOpacity / 2);
     coerce('hovered.marker.line.width', paddingInside < 2 ? paddingInside : 2);
     coerce('hovered.marker.line.color', Color.contrast(layout.paper_bgcolor));
 
