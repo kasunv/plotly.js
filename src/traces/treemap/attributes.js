@@ -197,17 +197,6 @@ module.exports = {
 
     hovered: {
         marker: {
-            opacity: {
-                valType: 'number',
-                editType: 'style',
-                role: 'style',
-                min: 0,
-                max: 1,
-                description: [
-                    'Sets the opacity for the sectors when hovered. With colorscale',
-                    'it is defaulted to 1; otherwise it is defaulted to 0.75'
-                ].join(' ')
-            },
             line: {
                 color: extendFlat({}, pieAttrs.marker.line.color, {
                     dflt: 'auto',
@@ -223,6 +212,21 @@ module.exports = {
                 }),
                 editType: 'style'
             },
+
+            opacity: {
+                valType: 'number',
+                editType: 'style',
+                role: 'style',
+                min: 0,
+                max: 1,
+                dflt: 'auto',
+                description: [
+                    'Sets the opacity for the sectors when hovered. With colorscale',
+                    'it is defaulted to 1; otherwise it is defaulted to the average of',
+                    'marker opacity and full opacity.'
+                ].join(' ')
+            },
+
             editType: 'style'
         },
         editType: 'style'

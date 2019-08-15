@@ -60,6 +60,16 @@
                     "title": "trace A",
                     "x": 0,
                     "xanchor": "right"
+                },
+                "padding": {
+                    "inside": 4
+                }
+            },
+            "hovered": {
+                "marker": {
+                    "line": {
+                        "color": "white"
+                    }
                 }
             }
         },
