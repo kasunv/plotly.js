@@ -232,6 +232,42 @@ module.exports = {
         editType: 'style'
     },
 
+    directory: {
+        side: {
+            valType: 'enumerated',
+            values: ['top', 'bottom', false],
+            dflt: 'bottom',
+            role: 'info',
+            editType: 'plot',
+            description: [
+                'Determines on which side of the the treemap the',
+                'directory bar should be presented.'
+            ].join(' ')
+        },
+
+        height: {
+            valType: 'number',
+            min: 12,
+            role: 'info',
+            editType: 'plot',
+            description: 'Sets the height of directory bar (in px).'
+        },
+
+        color: {
+            dflt: "#ddd",
+            valType: 'color',
+            role: 'style',
+            editType: 'style',
+            description: 'Sets the color of directory bar.'
+        },
+
+        textfont: extendFlat({}, pieAttrs.textfont, {
+            description: 'Sets the font used inside directory bar.'
+        }),
+
+        editType: 'plot'
+    },
+
     text: pieAttrs.text,
     textinfo: {
         valType: 'flaglist',

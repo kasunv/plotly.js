@@ -76,6 +76,13 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     coerce('hovered.marker.line.width', paddingInside < 2 ? paddingInside : 2);
     coerce('hovered.marker.line.color', Color.contrast(layout.paper_bgcolor));
 
+    var dirSide = coerce('directory.side');
+    if(dirSide) {
+        coerce('directory.color');
+        Lib.coerceFont(coerce, 'directory.textfont', layout.font);
+        coerce('directory.height', traceOut.directory.textfont.size + 4);
+    }
+
     handleDomainDefaults(traceOut, layout, coerce);
 
     // do not support transforms for now

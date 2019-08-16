@@ -100,11 +100,49 @@ function plotOne(gd, cd, element, transitionOpts) {
     var vpw = gs.w * (domain.x[1] - domain.x[0]);
     var vph = gs.h * (domain.y[1] - domain.y[0]);
 
+    if(trace.directory.side) {
+        vph -= trace.directory.height;
+    }
+
     var cx = cd0.cx = gs.l + gs.w * (domain.x[1] + domain.x[0]) / 2;
     var cy = cd0.cy = gs.t + gs.h * (1 - domain.y[0]) - vph / 2;
 
+    if(trace.directory.side === 'bottom') {
+        cy -= trace.directory.height;
+    }
+
     var viewportX = function(x) { return x + cx - vpw / 2; };
     var viewportY = function(y) { return y + cy - vph / 2; };
+
+    if(trace.directory.side) {
+        var bardir = d3.select(element).append('g')
+            .attr('class', 'directory');
+
+        var barW = vpw;
+        var barH = trace.directory.height;
+        var barX = viewportX(0);
+        var barY = (trace.directory.side === 'top') ? viewportY(0) - barH : viewportY(vph);
+
+        bardir.append('rect')
+            .attr('x', barX)
+            .attr('y', barY)
+            .attr('width', barW)
+            .attr('height', barH)
+            .style('fill', trace.directory.color);
+
+        bardir.append('text')
+            .text(getDirectory(entry.data))
+            .attr('text-anchor', 'left')
+            .attr('dy', '.75em')
+            .attr('x', 2 + barX)
+            .attr('y', 2 + barY)
+            .call(Drawing.font, {
+                size: trace.directory.textfont.size,
+                color: trace.directory.textfont.color,
+                family: trace.directory.textfont.family
+            })
+            .call(svgTextUtils.convertToTspans, gd);
+    }
 
     var getOrigin = function(pt) {
         var x0 = pt.x0;
@@ -796,4 +834,14 @@ function formatSliceLabel(pt, trace, fullLayout) {
     if(Lib.isValidTextValue(ptTx)) obj.text = ptTx;
     obj.customdata = Lib.castOption(trace, cdi.i, 'customdata');
     return Lib.texttemplateString(txt, obj, fullLayout._d3locale, obj, trace._meta || {});
+}
+
+function getLabelStr(label) {
+    if(!label && label !== 0) return '~';
+    return label;
+}
+
+function getDirectory(d) {
+    var labelStr = getLabelStr(d.data.label);
+    return d.parent ? getDirectory(d.parent) + ' | ' + labelStr : labelStr;
 }

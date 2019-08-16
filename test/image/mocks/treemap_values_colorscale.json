@@ -71,6 +71,16 @@
                         "color": "white"
                     }
                 }
+            },
+            "directory": {
+                "side": "top",
+                "height": 32,
+                "color": "black",
+                "textfont": {
+                    "color": "white",
+                    "size": 28,
+                    "family": "Times New Roman"
+                }
             }
         },
         {
