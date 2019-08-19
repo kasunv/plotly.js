@@ -90,7 +90,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     var cd0 = cd[0];
     var trace = cd0.trace;
     var hierarchy = cd0.hierarchy;
-    var entry = findEntryWithLevel(hierarchy, trace.level);
+    var entry = helpers.findEntryWithLevel(hierarchy, trace.level);
     var maxDepth = trace.maxdepth >= 0 ? trace.maxdepth : Infinity;
 
     var gs = fullLayout._size;
@@ -471,32 +471,6 @@ function partition(entry) {
         .size([2 * Math.PI, entry.height + 1])(entry);
 }
 
-function findEntryWithLevel(hierarchy, level) {
-    var out;
-    if(level) {
-        hierarchy.eachAfter(function(pt) {
-            if(helpers.getPtId(pt) === level) {
-                return out = pt.copy();
-            }
-        });
-    }
-    return out || hierarchy;
-}
-
-function findEntryWithChild(hierarchy, childId) {
-    var out;
-    hierarchy.eachAfter(function(pt) {
-        var children = pt.children || [];
-        for(var i = 0; i < children.length; i++) {
-            var child = children[i];
-            if(helpers.getPtId(child) === childId) {
-                return out = pt.copy();
-            }
-        }
-    });
-    return out || hierarchy;
-}
-
 function attachFxHandlers(sliceTop, gd, cd) {
     var cd0 = cd[0];
     var trace = cd0.trace;
@@ -649,8 +623,8 @@ function attachFxHandlers(sliceTop, gd, cd) {
         var hierarchy = cd0.hierarchy;
         var id = helpers.getPtId(pt);
         var nextEntry = helpers.isEntry(pt) ?
-            findEntryWithChild(hierarchy, id) :
-            findEntryWithLevel(hierarchy, id);
+            helpers.findEntryWithChild(hierarchy, id) :
+            helpers.findEntryWithLevel(hierarchy, id);
 
         var frame = {
             data: [{level: helpers.getPtId(nextEntry)}],
