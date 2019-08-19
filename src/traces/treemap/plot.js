@@ -131,7 +131,7 @@ function plotOne(gd, cd, element, transitionOpts) {
             .style('fill', trace.directory.color);
 
         bardir.append('text')
-            .text(getDirectory(entry.data))
+            .text(helpers.getDirectory(entry.data))
             .attr('text-anchor', 'left')
             .attr('dy', '.75em')
             .attr('x', 2 + barX)
@@ -834,14 +834,4 @@ function formatSliceLabel(pt, trace, fullLayout) {
     if(Lib.isValidTextValue(ptTx)) obj.text = ptTx;
     obj.customdata = Lib.castOption(trace, cdi.i, 'customdata');
     return Lib.texttemplateString(txt, obj, fullLayout._d3locale, obj, trace._meta || {});
-}
-
-function getLabelStr(label) {
-    if(!label && label !== 0) return '~';
-    return label;
-}
-
-function getDirectory(d) {
-    var labelStr = getLabelStr(d.data.label);
-    return d.parent ? getDirectory(d.parent) + ' | ' + labelStr : labelStr;
 }

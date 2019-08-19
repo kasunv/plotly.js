@@ -13,6 +13,16 @@ var Color = require('../../components/color');
 var setCursor = require('../../lib/setcursor');
 var appendArrayPointValue = require('../../components/fx/helpers').appendArrayPointValue;
 
+function getLabelStr(label) {
+    if(!label && label !== 0) return '~';
+    return label;
+}
+
+exports.getDirectory = function(d) {
+    var labelStr = getLabelStr(d.data.label);
+    return d.parent ? exports.getDirectory(d.parent) + ' | ' + labelStr : labelStr;
+};
+
 exports.makeEventData = function(pt, trace) {
     var cdi = pt.data.data;
 
